@@ -1,295 +1,145 @@
 <!DOCTYPE html>
 <html lang="pt">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>A Minha Empresa | Apresentação</title>
-<style>
-  /* ===== RESET & BASE ===== */
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  html { scroll-behavior: smooth; }
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
-    background: #f7f9fc;
-    color: #1a1a2e;
-    line-height: 1.6;
-  }
-
-  /* ===== HERO / CABEÇALHO ===== */
-  .hero {
-    background: linear-gradient(135deg, #0a3d62 0%, #1e6091 60%, #2e86c1 100%);
-    color: #fff;
-    padding: 60px 24px 50px;
-    text-align: center;
-    position: relative;
-    overflow: hidden;
-  }
-  .hero::after {
-    content: "";
-    position: absolute;
-    bottom: -1px; left: 0; right: 0;
-    height: 40px;
-    background: #f7f9fc;
-    border-radius: 50% 50% 0 0 / 100% 100% 0 0;
-  }
-  .hero .logo {
-    width: 96px; height: 96px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 4px solid rgba(255,255,255,0.85);
-    margin: 0 auto 18px;
-    display: block;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.25);
-  }
-  .hero h1 {
-    font-size: 1.9rem;
-    font-weight: 700;
-    margin-bottom: 6px;
-    letter-spacing: -0.5px;
-  }
-  .hero .tagline {
-    font-size: 1rem;
-    opacity: 0.9;
-    max-width: 340px;
-    margin: 0 auto;
-  }
-
-  /* ===== CONTAINER ===== */
-  .container {
-    max-width: 480px;
-    margin: 0 auto;
-    padding: 0 20px 40px;
-  }
-
-  /* ===== CARTÕES DE SECÇÃO ===== */
-  .card {
-    background: #fff;
-    border-radius: 16px;
-    padding: 24px 22px;
-    margin-top: 18px;
-    box-shadow: 0 4px 18px rgba(10,61,98,0.08);
-  }
-  .card h2 {
-    font-size: 1.15rem;
-    color: #0a3d62;
-    margin-bottom: 12px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .card h2 .icon { font-size: 1.2rem; }
-  .card p { font-size: 0.95rem; color: #444; }
-  .card p + p { margin-top: 10px; }
-
-  /* ===== SERVIÇOS ===== */
-  .services {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-    margin-top: 4px;
-  }
-  .service-item {
-    background: #f0f6fb;
-    border-radius: 12px;
-    padding: 16px 12px;
-    text-align: center;
-    transition: transform 0.15s;
-  }
-  .service-item:active { transform: scale(0.97); }
-  .service-item .emoji { font-size: 1.6rem; display: block; margin-bottom: 6px; }
-  .service-item .name {
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: #0a3d62;
-  }
-
-  /* ===== BOTÕES ===== */
-  .btn-group { display: flex; flex-direction: column; gap: 10px; margin-top: 18px; }
-  .btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    width: 100%;
-    padding: 15px;
-    border-radius: 12px;
-    text-decoration: none;
-    font-size: 1rem;
-    font-weight: 600;
-    transition: transform 0.15s, background 0.2s;
-    border: none;
-    cursor: pointer;
-    font-family: inherit;
-  }
-  .btn:active { transform: scale(0.98); }
-  .btn-primary {
-    background: #0a3d62;
-    color: #fff;
-    box-shadow: 0 6px 18px rgba(10,61,98,0.25);
-  }
-  .btn-primary:hover { background: #1e6091; }
-  .btn-secondary {
-    background: #fff;
-    color: #0a3d62;
-    border: 2px solid #d6e4ef;
-  }
-  .btn-secondary:hover { background: #f0f6fb; }
-  .btn-whatsapp {
-    background: #25D366;
-    color: #fff;
-    box-shadow: 0 6px 18px rgba(37,211,102,0.3);
-  }
-  .btn-whatsapp:hover { background: #1ebe5a; }
-
-  /* ===== HORÁRIO ===== */
-  .horario {
-    display: flex;
-    justify-content: space-between;
-    font-size: 0.9rem;
-    padding: 6px 0;
-    border-bottom: 1px dashed #e3edf5;
-  }
-  .horario:last-child { border-bottom: none; }
-  .horario .dia { color: #444; }
-  .horario .hora { font-weight: 600; color: #0a3d62; }
-
-  /* ===== MAPA (opcional) ===== */
-  .mapa {
-    width: 100%;
-    height: 180px;
-    border: 0;
-    border-radius: 12px;
-    margin-top: 8px;
-  }
-
-  /* ===== RODAPÉ ===== */
-  .footer {
-    text-align: center;
-    font-size: 0.78rem;
-    color: #8aa0b5;
-    margin-top: 28px;
-    padding-bottom: 10px;
-  }
-  .footer a { color: #1e6091; text-decoration: none; }
-
-  /* ===== AVISO ANDROID (vCard) ===== */
-  .nota-android {
-    font-size: 0.78rem;
-    color: #8aa0b5;
-    text-align: center;
-    margin-top: 8px;
-    line-height: 1.4;
-  }
-
-  /* ===== ANIMAÇÃO DE ENTRADA ===== */
-  .card { animation: fadeUp 0.5s ease both; }
-  .card:nth-child(2) { animation-delay: 0.05s; }
-  .card:nth-child(3) { animation-delay: 0.1s; }
-  .card:nth-child(4) { animation-delay: 0.15s; }
-  .card:nth-child(5) { animation-delay: 0.2s; }
-  @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(12px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A Tua Empresa - Apresentação</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+        body {
+            background-color: #f4f6f9;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .card {
+            background: #ffffff;
+            width: 100%;
+            max-width: 400px;
+            padding: 30px 20px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            text-align: center;
+        }
+        .logo {
+            width: 90px;
+            height: 90px;
+            margin: 0 auto 15px auto;
+            border-radius: 50%;
+            background-color: #eaeaea;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #666;
+            overflow: hidden;
+        }
+        .logo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        h1 {
+            font-size: 22px;
+            color: #1a1a1a;
+            margin-bottom: 5px;
+        }
+        .title {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 15px;
+        }
+        .bio {
+            font-size: 14px;
+            color: #555;
+            margin-bottom: 25px;
+            line-height: 1.4;
+        }
+        .btn-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            background-color: #0066cc;
+            color: white;
+            padding: 14px;
+            border-radius: 10px;
+            text-decoration: none;
+            font-size: 15px;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+        .btn:hover {
+            background-color: #0052a3;
+        }
+        .btn-secondary {
+            background-color: #f0f2f5;
+            color: #333;
+        }
+        .btn-secondary:hover {
+            background-color: #e4e6eb;
+        }
+        .footer {
+            margin-top: 25px;
+            font-size: 12px;
+            color: #999;
+        }
+    </style>
 </head>
 <body>
 
-  <!-- ===== HERO ===== -->
-  <header class="hero">
-    <img src="logo.png" alt="Logótipo" class="logo">
-    <h1>Nome da Empresa</h1>
-    <p class="tagline">Soluções inovadoras para o seu negócio</p>
-  </header>
-
-  <main class="container">
-
-    <!-- ===== QUEM SOMOS ===== -->
-    <section class="card">
-      <h2><span class="icon">🏢</span> Quem somos</h2>
-      <p>
-        Somos uma empresa dedicada a [área de atividade], com mais de [X] anos
-        de experiência a ajudar clientes a [benefício principal].
-      </p>
-      <p>
-        A nossa missão é [missão em uma frase]. Trabalhamos com [público-alvo]
-        em [região/país].
-      </p>
-    </section>
-
-    <!-- ===== SERVIÇOS ===== -->
-    <section class="card">
-      <h2><span class="icon">⚙️</span> Serviços</h2>
-      <div class="services">
-        <div class="service-item">
-          <span class="emoji">💡</span>
-          <span class="name">Consultoria</span>
+    <div class="card">
+        <!-- Substitui o texto abaixo pela imagem do teu logótipo se preferires <img src="logo.png" alt="Logo"> -->
+        <div class="logo">
+            LOGÓTIPO
         </div>
-        <div class="service-item">
-          <span class="emoji">🛠️</span>
-          <span class="name">Implementação</span>
+        
+        <h1>Nome da Empresa</h1>
+        <div class="title">O teu Nome • Cargo / Especialidade</div>
+        
+        <p class="bio">
+            Ajudamos empresas e profissionais a destacarem-se através de soluções inovadoras e eficientes.
+        </p>
+
+        <div class="btn-group">
+            <!-- Botão para guardar contacto diretamente no telemóvel -->
+            <a href="contacto.vcf" class="btn">
+                💾 Guardar Contacto (vCard)
+            </a>
+            
+            <!-- Botão para ligar ou abrir WhatsApp -->
+            <a href="https://wa.me/351912345678" class="btn" style="background-color: #25D366;">
+                💬 Falar por WhatsApp
+            </a>
+            
+            <!-- Botão para o Website -->
+            <a href="https://www.tuaempresa.com" class="btn btn-secondary">
+                🌐 Visitar Website
+            </a>
+
+            <!-- Botão para o LinkedIn ou outra rede -->
+            <a href="https://linkedin.com/in/teuperfil" class="btn btn-secondary">
+                💼 LinkedIn
+            </a>
         </div>
-        <div class="service-item">
-          <span class="emoji">📊</span>
-          <span class="name">Análise</span>
+
+        <div class="footer">
+            Powered by NFC Card
         </div>
-        <div class="service-item">
-          <span class="emoji">🤝</span>
-          <span class="name">Apoio ao cliente</span>
-        </div>
-      </div>
-    </section>
-
-    <!-- ===== CONTACTOS RÁPIDOS ===== -->
-    <section class="card">
-      <h2><span class="icon">📇</span> Contacte-nos</h2>
-
-      <!-- Botão vCard -->
-      <a class="btn btn-primary" href="contacto.vcf">📥 Guardar contacto</a>
-      <p class="nota-android">
-        No Android, após o download, abra o ficheiro <strong>contacto.vcf</strong>
-        na pasta "Transferências" e escolha "Contactos".
-      </p>
-
-      <div class="btn-group">
-        <a class="btn btn-whatsapp" href="https://wa.me/351912345678">
-          💬 WhatsApp
-        </a>
-        <a class="btn btn-secondary" href="tel:+351912345678">
-          📞 Ligar
-        </a>
-        <a class="btn btn-secondary" href="mailto:geral@empresa.pt">
-          ✉️ Email
-        </a>
-      </div>
-    </section>
-
-    <!-- ===== HORÁRIO ===== -->
-    <section class="card">
-      <h2><span class="icon">🕒</span> Horário</h2>
-      <div class="horario"><span class="dia">Segunda – Sexta</span><span class="hora">09:00 – 18:00</span></div>
-      <div class="horario"><span class="dia">Sábado</span><span class="hora">09:00 – 13:00</span></div>
-      <div class="horario"><span class="dia">Domingo</span><span class="hora">Fechado</span></div>
-    </section>
-
-    <!-- ===== LOCALIZAÇÃO (OPCIONAL) ===== -->
-    <section class="card">
-      <h2><span class="icon">📍</span> Onde estamos</h2>
-      <p>Rua Exemplo 123, 1000-000 Lisboa</p>
-      <iframe
-        class="mapa"
-        src="https://www.google.com/maps?q=Lisboa&output=embed"
-        loading="lazy"
-        referrerpolicy="no-referrer-when-downgrade">
-      </iframe>
-    </section>
-
-    <!-- ===== RODAPÉ ===== -->
-    <footer class="footer">
-      © 2026 Nome da Empresa · <a href="https://www.empresa.pt">www.empresa.pt</a>
-    </footer>
-
-  </main>
+    </div>
 
 </body>
 </html>
