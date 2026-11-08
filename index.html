@@ -3,105 +3,293 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Bem-vindo | A Minha Empresa</title>
+<title>A Minha Empresa | Apresentação</title>
 <style>
-  * { margin:0; padding:0; box-sizing:border-box; }
+  /* ===== RESET & BASE ===== */
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
   body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
-    background: linear-gradient(135deg, #0a3d62 0%, #1e6091 100%);
-    min-height: 100vh;
-    display: flex; align-items: center; justify-content: center;
-    padding: 20px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    background: #f7f9fc;
+    color: #1a1a2e;
+    line-height: 1.6;
   }
-  .card {
-    background: #fff;
-    border-radius: 20px;
-    padding: 40px 28px;
-    max-width: 420px;
-    width: 100%;
+
+  /* ===== HERO / CABEÇALHO ===== */
+  .hero {
+    background: linear-gradient(135deg, #0a3d62 0%, #1e6091 60%, #2e86c1 100%);
+    color: #fff;
+    padding: 60px 24px 50px;
     text-align: center;
-    box-shadow: 0 20px 50px rgba(0,0,0,0.25);
-    animation: fadeIn 0.6s ease;
+    position: relative;
+    overflow: hidden;
   }
-  @keyframes fadeIn {
-    from { opacity:0; transform: translateY(15px); }
-    to { opacity:1; transform: translateY(0); }
+  .hero::after {
+    content: "";
+    position: absolute;
+    bottom: -1px; left: 0; right: 0;
+    height: 40px;
+    background: #f7f9fc;
+    border-radius: 50% 50% 0 0 / 100% 100% 0 0;
   }
-  .logo {
-    width: 90px; height: 90px;
+  .hero .logo {
+    width: 96px; height: 96px;
     border-radius: 50%;
     object-fit: cover;
-    margin: 0 auto 20px;
+    border: 4px solid rgba(255,255,255,0.85);
+    margin: 0 auto 18px;
     display: block;
-    border: 3px solid #0a3d62;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.25);
   }
-  h1 {
-    color: #0a3d62;
-    font-size: 1.6rem;
-    margin-bottom: 8px;
+  .hero h1 {
+    font-size: 1.9rem;
+    font-weight: 700;
+    margin-bottom: 6px;
+    letter-spacing: -0.5px;
   }
-  .subtitle {
-    color: #555;
+  .hero .tagline {
     font-size: 1rem;
-    margin-bottom: 28px;
-    line-height: 1.5;
+    opacity: 0.9;
+    max-width: 340px;
+    margin: 0 auto;
   }
+
+  /* ===== CONTAINER ===== */
+  .container {
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 0 20px 40px;
+  }
+
+  /* ===== CARTÕES DE SECÇÃO ===== */
+  .card {
+    background: #fff;
+    border-radius: 16px;
+    padding: 24px 22px;
+    margin-top: 18px;
+    box-shadow: 0 4px 18px rgba(10,61,98,0.08);
+  }
+  .card h2 {
+    font-size: 1.15rem;
+    color: #0a3d62;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .card h2 .icon { font-size: 1.2rem; }
+  .card p { font-size: 0.95rem; color: #444; }
+  .card p + p { margin-top: 10px; }
+
+  /* ===== SERVIÇOS ===== */
+  .services {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 4px;
+  }
+  .service-item {
+    background: #f0f6fb;
+    border-radius: 12px;
+    padding: 16px 12px;
+    text-align: center;
+    transition: transform 0.15s;
+  }
+  .service-item:active { transform: scale(0.97); }
+  .service-item .emoji { font-size: 1.6rem; display: block; margin-bottom: 6px; }
+  .service-item .name {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #0a3d62;
+  }
+
+  /* ===== BOTÕES ===== */
+  .btn-group { display: flex; flex-direction: column; gap: 10px; margin-top: 18px; }
   .btn {
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 10px;
     width: 100%;
-    padding: 16px;
-    background: #0a3d62;
-    color: #fff;
+    padding: 15px;
     border-radius: 12px;
     text-decoration: none;
-    font-size: 1.05rem;
+    font-size: 1rem;
     font-weight: 600;
     transition: transform 0.15s, background 0.2s;
-    margin-bottom: 12px;
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
   }
-  .btn:hover { background: #1e6091; transform: translateY(-2px); }
   .btn:active { transform: scale(0.98); }
-  .btn.secondary {
+  .btn-primary {
+    background: #0a3d62;
+    color: #fff;
+    box-shadow: 0 6px 18px rgba(10,61,98,0.25);
+  }
+  .btn-primary:hover { background: #1e6091; }
+  .btn-secondary {
     background: #fff;
     color: #0a3d62;
-    border: 2px solid #0a3d62;
+    border: 2px solid #d6e4ef;
   }
-  .btn.secondary:hover { background: #f0f6fb; }
+  .btn-secondary:hover { background: #f0f6fb; }
+  .btn-whatsapp {
+    background: #25D366;
+    color: #fff;
+    box-shadow: 0 6px 18px rgba(37,211,102,0.3);
+  }
+  .btn-whatsapp:hover { background: #1ebe5a; }
+
+  /* ===== HORÁRIO ===== */
+  .horario {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.9rem;
+    padding: 6px 0;
+    border-bottom: 1px dashed #e3edf5;
+  }
+  .horario:last-child { border-bottom: none; }
+  .horario .dia { color: #444; }
+  .horario .hora { font-weight: 600; color: #0a3d62; }
+
+  /* ===== MAPA (opcional) ===== */
+  .mapa {
+    width: 100%;
+    height: 180px;
+    border: 0;
+    border-radius: 12px;
+    margin-top: 8px;
+  }
+
+  /* ===== RODAPÉ ===== */
   .footer {
-    margin-top: 24px;
-    font-size: 0.8rem;
-    color: #999;
+    text-align: center;
+    font-size: 0.78rem;
+    color: #8aa0b5;
+    margin-top: 28px;
+    padding-bottom: 10px;
+  }
+  .footer a { color: #1e6091; text-decoration: none; }
+
+  /* ===== AVISO ANDROID (vCard) ===== */
+  .nota-android {
+    font-size: 0.78rem;
+    color: #8aa0b5;
+    text-align: center;
+    margin-top: 8px;
+    line-height: 1.4;
+  }
+
+  /* ===== ANIMAÇÃO DE ENTRADA ===== */
+  .card { animation: fadeUp 0.5s ease both; }
+  .card:nth-child(2) { animation-delay: 0.05s; }
+  .card:nth-child(3) { animation-delay: 0.1s; }
+  .card:nth-child(4) { animation-delay: 0.15s; }
+  .card:nth-child(5) { animation-delay: 0.2s; }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
   }
 </style>
 </head>
 <body>
-  <div class="card">
-    <!-- Substitui por o teu logótipo -->
+
+  <!-- ===== HERO ===== -->
+  <header class="hero">
     <img src="logo.png" alt="Logótipo" class="logo">
+    <h1>Nome da Empresa</h1>
+    <p class="tagline">Soluções inovadoras para o seu negócio</p>
+  </header>
 
-    <h1>Bem-vindo!</h1>
-    <p class="subtitle">
-      Obrigado por nos visitar.<br>
-      Guarde o nosso contacto com um toque.
-    </p>
+  <main class="container">
 
-    <!-- Botão vCard -->
-    <a class="btn" href="contacto.vcf" download="contacto.vcf">
-      📇 Guardar contacto
-    </a>
+    <!-- ===== QUEM SOMOS ===== -->
+    <section class="card">
+      <h2><span class="icon">🏢</span> Quem somos</h2>
+      <p>
+        Somos uma empresa dedicada a [área de atividade], com mais de [X] anos
+        de experiência a ajudar clientes a [benefício principal].
+      </p>
+      <p>
+        A nossa missão é [missão em uma frase]. Trabalhamos com [público-alvo]
+        em [região/país].
+      </p>
+    </section>
 
-    <!-- Botões opcionais -->
-    <a class="btn secondary" href="tel:+351912345678">
-      📞 Ligar agora
-    </a>
-    <a class="btn secondary" href="https://wa.me/351912345678">
-      💬 WhatsApp
-    </a>
+    <!-- ===== SERVIÇOS ===== -->
+    <section class="card">
+      <h2><span class="icon">⚙️</span> Serviços</h2>
+      <div class="services">
+        <div class="service-item">
+          <span class="emoji">💡</span>
+          <span class="name">Consultoria</span>
+        </div>
+        <div class="service-item">
+          <span class="emoji">🛠️</span>
+          <span class="name">Implementação</span>
+        </div>
+        <div class="service-item">
+          <span class="emoji">📊</span>
+          <span class="name">Análise</span>
+        </div>
+        <div class="service-item">
+          <span class="emoji">🤝</span>
+          <span class="name">Apoio ao cliente</span>
+        </div>
+      </div>
+    </section>
 
-    <p class="footer">© 2026 A Minha Empresa</p>
-  </div>
+    <!-- ===== CONTACTOS RÁPIDOS ===== -->
+    <section class="card">
+      <h2><span class="icon">📇</span> Contacte-nos</h2>
+
+      <!-- Botão vCard -->
+      <a class="btn btn-primary" href="contacto.vcf">📥 Guardar contacto</a>
+      <p class="nota-android">
+        No Android, após o download, abra o ficheiro <strong>contacto.vcf</strong>
+        na pasta "Transferências" e escolha "Contactos".
+      </p>
+
+      <div class="btn-group">
+        <a class="btn btn-whatsapp" href="https://wa.me/351912345678">
+          💬 WhatsApp
+        </a>
+        <a class="btn btn-secondary" href="tel:+351912345678">
+          📞 Ligar
+        </a>
+        <a class="btn btn-secondary" href="mailto:geral@empresa.pt">
+          ✉️ Email
+        </a>
+      </div>
+    </section>
+
+    <!-- ===== HORÁRIO ===== -->
+    <section class="card">
+      <h2><span class="icon">🕒</span> Horário</h2>
+      <div class="horario"><span class="dia">Segunda – Sexta</span><span class="hora">09:00 – 18:00</span></div>
+      <div class="horario"><span class="dia">Sábado</span><span class="hora">09:00 – 13:00</span></div>
+      <div class="horario"><span class="dia">Domingo</span><span class="hora">Fechado</span></div>
+    </section>
+
+    <!-- ===== LOCALIZAÇÃO (OPCIONAL) ===== -->
+    <section class="card">
+      <h2><span class="icon">📍</span> Onde estamos</h2>
+      <p>Rua Exemplo 123, 1000-000 Lisboa</p>
+      <iframe
+        class="mapa"
+        src="https://www.google.com/maps?q=Lisboa&output=embed"
+        loading="lazy"
+        referrerpolicy="no-referrer-when-downgrade">
+      </iframe>
+    </section>
+
+    <!-- ===== RODAPÉ ===== -->
+    <footer class="footer">
+      © 2026 Nome da Empresa · <a href="https://www.empresa.pt">www.empresa.pt</a>
+    </footer>
+
+  </main>
+
 </body>
 </html>
