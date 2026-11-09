@@ -1,145 +1,103 @@
 <!DOCTYPE html>
 <html lang="pt">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>A Tua Empresa - Apresentação</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-        }
-        body {
-            background-color: #f4f6f9;
-            color: #333;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            padding: 20px;
-        }
-        .card {
-            background: #ffffff;
-            width: 100%;
-            max-width: 400px;
-            padding: 30px 20px;
-            border-radius: 20px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
-            text-align: center;
-        }
-        .logo {
-            width: 90px;
-            height: 90px;
-            margin: 0 auto 15px auto;
-            border-radius: 50%;
-            background-color: #eaeaea;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            color: #666;
-            overflow: hidden;
-        }
-        .logo img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-        h1 {
-            font-size: 22px;
-            color: #1a1a1a;
-            margin-bottom: 5px;
-        }
-        .title {
-            font-size: 14px;
-            color: #666;
-            margin-bottom: 15px;
-        }
-        .bio {
-            font-size: 14px;
-            color: #555;
-            margin-bottom: 25px;
-            line-height: 1.4;
-        }
-        .btn-group {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-        .btn {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            background-color: #0066cc;
-            color: white;
-            padding: 14px;
-            border-radius: 10px;
-            text-decoration: none;
-            font-size: 15px;
-            font-weight: 600;
-            transition: background 0.2s;
-        }
-        .btn:hover {
-            background-color: #0052a3;
-        }
-        .btn-secondary {
-            background-color: #f0f2f5;
-            color: #333;
-        }
-        .btn-secondary:hover {
-            background-color: #e4e6eb;
-        }
-        .footer {
-            margin-top: 25px;
-            font-size: 12px;
-            color: #999;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>10AFioNotável – Automação Industrial e Eletrónica</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: linear-gradient(135deg, #0b1e2d, #123a52, #1e5f7a);
+      color: #fff;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .card {
+      background: rgba(255,255,255,0.07);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 20px;
+      max-width: 480px;
+      width: 100%;
+      padding: 40px 30px;
+      text-align: center;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.45);
+    }
+    .logo-img {
+      max-width: 220px;
+      width: 70%;
+      height: auto;
+      margin: 0 auto 18px;
+      display: block;
+    }
+    .tagline {
+      font-size: 0.9rem;
+      color: #b8d4e3;
+      margin-bottom: 25px;
+      letter-spacing: 0.5px;
+    }
+    h1 { font-size: 1.45rem; margin-bottom: 15px; }
+    p { font-size: 0.98rem; line-height: 1.6; color: #dbe9f0; margin-bottom: 25px; }
+    .highlight {
+      background: rgba(0,198,255,0.12);
+      border-left: 3px solid #00c6ff;
+      border-radius: 10px;
+      padding: 16px 18px;
+      text-align: left;
+      font-size: 0.9rem;
+      line-height: 1.7;
+      margin-bottom: 25px;
+    }
+    .highlight strong { color: #7ef29d; }
+    .buttons { display: flex; flex-direction: column; gap: 12px; }
+    .btn {
+      display: block;
+      padding: 14px;
+      border-radius: 10px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 1rem;
+      transition: transform 0.2s, opacity 0.2s;
+    }
+    .btn:hover { transform: translateY(-2px); opacity: 0.9; }
+    .btn-primary {
+      background: linear-gradient(90deg, #00c6ff, #7ef29d);
+      color: #0b1e2d;
+    }
+    .btn-secondary {
+      background: rgba(255,255,255,0.1);
+      color: #fff;
+      border: 1px solid rgba(255,255,255,0.25);
+    }
+    .footer { margin-top: 25px; font-size: 0.72rem; color: #8fb3c4; }
+  </style>
 </head>
 <body>
+  <div class="card">
 
-    <div class="card">
-        <!-- Substitui o texto abaixo pela imagem do teu logótipo se preferires <img src="logo.png" alt="Logo"> -->
-        <div class="logo">
-            LOGÓTIPO
-        </div>
-        
-        <h1>Nome da Empresa</h1>
-        <div class="title">O teu Nome • Cargo / Especialidade</div>
-        
-        <p class="bio">
-            Ajudamos empresas e profissionais a destacarem-se através de soluções inovadoras e eficientes.
-        </p>
+    <img class="logo-img" src="logonovo.png" alt="10AFioNotável">
 
-        <div class="btn-group">
-            <!-- Botão para guardar contacto diretamente no telemóvel -->
-            <a href="contacto.vcf" class="btn">
-                💾 Guardar Contacto (vCard)
-            </a>
-            
-            <!-- Botão para ligar ou abrir WhatsApp -->
-            <a href="https://wa.me/351912345678" class="btn" style="background-color: #25D366;">
-                💬 Falar por WhatsApp
-            </a>
-            
-            <!-- Botão para o Website -->
-            <a href="https://www.tuaempresa.com" class="btn btn-secondary">
-                🌐 Visitar Website
-            </a>
+    <div class="tagline">AUTOMAÇÃO INDUSTRIAL · ELETRÓNICA</div>
 
-            <!-- Botão para o LinkedIn ou outra rede -->
-            <a href="https://linkedin.com/in/teuperfil" class="btn btn-secondary">
-                💼 LinkedIn
-            </a>
-        </div>
+    <h1>Bem-vindo! 👋</h1>
+    <p>Obrigado por aproximar a sua caneta. Descubra como podemos transformar os processos da sua empresa com tecnologia à medida.</p>
 
-        <div class="footer">
-            Powered by NFC Card
-        </div>
+    <div class="highlight">
+      <strong>Tecnologia que transforma processos.</strong><br>
+      Soluções de automação industrial e eletrónica, adaptadas às necessidades específicas de cada projeto — da conceção à implementação.
     </div>
 
+    <div class="buttons">
+      <a class="btn btn-primary" href="https://10afionotavel.pt/index.html">🌐 Visitar o site</a>
+      <a class="btn btn-secondary" href="mailto:geral@10afionotavel.pt">✉️ Enviar e-mail</a>
+      <a class="btn btn-secondary" href="tel:+351000000000">📞 Ligar</a>
+    </div>
+
+    <div class="footer">10AFioNotável · Automação Industrial e Eletrónica</div>
+  </div>
 </body>
 </html>
