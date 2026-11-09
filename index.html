@@ -6,27 +6,40 @@
   <title>10AFioNotável – Automação Industrial e Eletrónica</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
+
     body {
       font-family: 'Segoe UI', Arial, sans-serif;
-      background: linear-gradient(135deg, #0b1e2d, #123a52, #1e5f7a);
-      color: #fff;
+      background: radial-gradient(circle at 20% 10%, #1a2a3a 0%, #0d1520 45%, #000000 100%);
+      color: #ffffff;
       min-height: 100vh;
       display: flex;
       align-items: center;
       justify-content: center;
       padding: 20px;
     }
+
     .card {
-      background: rgba(255,255,255,0.07);
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(255,255,255,0.15);
+      background: linear-gradient(160deg, rgba(20,30,45,0.95), rgba(5,10,18,0.95));
+      border: 1px solid rgba(255,140,0,0.25);
       border-radius: 20px;
       max-width: 480px;
       width: 100%;
       padding: 40px 30px;
       text-align: center;
-      box-shadow: 0 20px 50px rgba(0,0,0,0.45);
+      box-shadow: 0 25px 60px rgba(0,0,0,0.65), 0 0 0 1px rgba(0,120,200,0.08);
+      position: relative;
+      overflow: hidden;
     }
+
+    /* linha decorativa superior laranja→azul */
+    .card::before {
+      content: "";
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, #ff8c00, #ffb347, #1e90ff, #00bfff);
+    }
+
     .logo-img {
       max-width: 220px;
       width: 70%;
@@ -34,26 +47,48 @@
       margin: 0 auto 18px;
       display: block;
     }
+
     .tagline {
-      font-size: 0.9rem;
-      color: #b8d4e3;
+      font-size: 0.85rem;
+      color: #ffb347;
       margin-bottom: 25px;
-      letter-spacing: 0.5px;
+      letter-spacing: 1.5px;
+      font-weight: 600;
     }
-    h1 { font-size: 1.45rem; margin-bottom: 15px; }
-    p { font-size: 0.98rem; line-height: 1.6; color: #dbe9f0; margin-bottom: 25px; }
+
+    h1 {
+      font-size: 1.45rem;
+      margin-bottom: 15px;
+      color: #ffffff;
+    }
+
+    p {
+      font-size: 0.98rem;
+      line-height: 1.6;
+      color: #cfd8e3;
+      margin-bottom: 25px;
+    }
+
     .highlight {
-      background: rgba(0,198,255,0.12);
-      border-left: 3px solid #00c6ff;
+      background: rgba(30,144,255,0.10);
+      border-left: 3px solid #ff8c00;
       border-radius: 10px;
       padding: 16px 18px;
       text-align: left;
       font-size: 0.9rem;
       line-height: 1.7;
       margin-bottom: 25px;
+      color: #dbe9f0;
     }
-    .highlight strong { color: #7ef29d; }
-    .buttons { display: flex; flex-direction: column; gap: 12px; }
+
+    .highlight strong { color: #ffb347; }
+
+    .buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
     .btn {
       display: block;
       padding: 14px;
@@ -61,19 +96,34 @@
       text-decoration: none;
       font-weight: 600;
       font-size: 1rem;
-      transition: transform 0.2s, opacity 0.2s;
+      transition: transform 0.2s, opacity 0.2s, box-shadow 0.2s;
     }
-    .btn:hover { transform: translateY(-2px); opacity: 0.9; }
+
+    .btn:hover { transform: translateY(-2px); opacity: 0.95; }
+
     .btn-primary {
-      background: linear-gradient(90deg, #00c6ff, #7ef29d);
-      color: #0b1e2d;
+      background: linear-gradient(90deg, #ff8c00, #ffb347);
+      color: #0b1420;
+      box-shadow: 0 6px 18px rgba(255,140,0,0.35);
     }
+
     .btn-secondary {
-      background: rgba(255,255,255,0.1);
-      color: #fff;
-      border: 1px solid rgba(255,255,255,0.25);
+      background: rgba(30,144,255,0.12);
+      color: #e6f2ff;
+      border: 1px solid rgba(30,144,255,0.45);
     }
-    .footer { margin-top: 25px; font-size: 0.72rem; color: #8fb3c4; }
+
+    .btn-secondary:hover {
+      background: rgba(30,144,255,0.22);
+      box-shadow: 0 6px 18px rgba(30,144,255,0.25);
+    }
+
+    .footer {
+      margin-top: 25px;
+      font-size: 0.72rem;
+      color: #7fa8c9;
+      letter-spacing: 0.4px;
+    }
   </style>
 </head>
 <body>
