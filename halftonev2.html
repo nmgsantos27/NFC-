@@ -1,0 +1,1219 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>exe Halftone Tool — DTF</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --bg: #0a0a0a; --surface: #141414; --surface2: #1e1e1e;
+    --border: #2a2a2a; --text: #f0f0f0; --text-dim: #a0a0a0;
+    --accent: #ff90e8; --accent2: #54f595; --gold: #fcc700;
+  }
+  body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); color: var(--text); height: 100vh; overflow: hidden; }
+  header { padding: 12px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+  header h1 { font-size: 15px; font-weight: 700; letter-spacing: -0.5px; }
+  .badge { font-size: 10px; color: var(--text-dim); background: var(--surface2); padding: 3px 8px; border-radius: 20px; border: 1px solid var(--border); }
+  .layout { display: flex; height: calc(100vh - 49px); }
+  .sidebar { width: 310px; min-width: 310px; background: var(--surface); border-right: 1px solid var(--border); overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 18px; }
+  .sidebar::-webkit-scrollbar { width: 4px; } .sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+  .section-title { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text-dim); margin-bottom: 9px; display: flex; align-items: center; }
+  .control-group { display: flex; flex-direction: column; gap: 8px; }
+  label { font-size: 12px; font-weight: 500; display: flex; justify-content: space-between; align-items: center; }
+  label .value { font-size: 11px; color: var(--accent); font-variant-numeric: tabular-nums; }
+  input[type="range"] { -webkit-appearance: none; width: 100%; height: 3px; background: var(--border); border-radius: 2px; outline: none; }
+  input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 12px; height: 12px; border-radius: 50%; background: var(--accent); cursor: pointer; border: 2px solid var(--bg); }
+  .btn-group { display: flex; gap: 4px; flex-wrap: wrap; }
+  .btn-group button { flex: 1; min-width: 48px; padding: 7px 4px; font-size: 11px; font-weight: 600; font-family: inherit; border: 1px solid var(--border); border-radius: 5px; background: var(--surface2); color: var(--text-dim); cursor: pointer; transition: all 0.15s; }
+  .btn-group button:hover { border-color: var(--accent); color: var(--text); }
+  .btn-group button.active { background: var(--accent); color: #000; border-color: var(--accent); }
+  .color-row { display: flex; gap: 8px; align-items: center; }
+  input[type="color"] { width: 36px; height: 26px; border: 1px solid var(--border); border-radius: 4px; background: transparent; cursor: pointer; padding: 1px; }
+  .hint { font-size: 10px; color: var(--text-dim); line-height: 1.45; margin-top: 2px; }
+  .export-buttons { display: flex; gap: 6px; margin-top: auto; padding-top: 14px; border-top: 1px solid var(--border); }
+  .export-btn { flex: 1; padding: 11px; font-size: 12px; font-weight: 700; font-family: inherit; border: none; border-radius: 8px; cursor: pointer; transition: all 0.15s; text-transform: uppercase; letter-spacing: 0.5px; }
+  .export-btn.png { background: var(--accent); color: #000; }
+  .export-btn:hover { transform: translateY(-1px); filter: brightness(1.1); }
+  .canvas-area { flex: 1; position: relative; overflow: hidden; cursor: grab; background: #808080; }
+  .canvas-area.dragging { cursor: grabbing; }
+  .checkerboard { position: absolute; inset: 0; background-size: 24px 24px; background-image: repeating-conic-gradient(#666 0% 25%, #808080 0% 50%); z-index: 0; pointer-events: none; display: none; }
+  .checkerboard.visible { display: block; }
+  #viewCanvas { position: absolute; top: 0; left: 0; transform-origin: 0 0; image-rendering: auto; z-index: 1; }
+  .drop-zone { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; z-index: 10; cursor: pointer; background: var(--bg); }
+  .drop-zone.hidden { display: none; }
+  .drop-zone.dragover { background: rgba(255,144,232,0.08); }
+  .drop-icon { width: 64px; height: 64px; border: 2px dashed var(--border); border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 28px; color: var(--text-dim); transition: all 0.2s; }
+  .drop-zone.dragover .drop-icon { border-color: var(--accent); color: var(--accent); }
+  .drop-text { font-size: 13px; color: var(--text-dim); }
+  .drop-text span { color: var(--accent); text-decoration: underline; }
+  .close-btn { position: absolute; top: 10px; right: 12px; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; color: var(--text-dim); cursor: pointer; padding: 4px 9px; font-size: 14px; z-index: 5; display: none; transition: all 0.15s; }
+  .close-btn:hover { border-color: #f44; color: #f44; }
+  .zoom-bar { position: absolute; bottom: 10px; right: 12px; display: flex; gap: 6px; align-items: center; background: var(--surface); padding: 5px 10px; border-radius: 6px; border: 1px solid var(--border); font-size: 11px; color: var(--text-dim); z-index: 5; display: none; }
+  .zoom-bar button { background: none; border: none; color: var(--text-dim); cursor: pointer; font-size: 14px; padding: 2px 4px; font-family: inherit; }
+  .zoom-bar button:hover { color: var(--text); }
+  .info-bar { position: absolute; bottom: 10px; left: 12px; display: flex; gap: 12px; background: var(--surface); padding: 5px 10px; border-radius: 6px; border: 1px solid var(--border); font-size: 10px; color: var(--text-dim); z-index: 5; display: none; }
+  .tip { display: inline-flex; align-items: center; justify-content: center; width: 14px; height: 14px; border-radius: 50%; background: var(--surface2); border: 1px solid var(--border); font-size: 9px; color: var(--text-dim); cursor: help; font-weight: 700; margin-left: 5px; }
+  #tipBox { position: fixed; z-index: 9999; background: var(--text); color: var(--bg); padding: 7px 10px; border-radius: 6px; font-size: 10px; line-height: 1.45; width: 230px; pointer-events: none; box-shadow: 0 4px 12px rgba(0,0,0,0.4); display: none; }
+  .mode-card { border: 1px solid var(--border); border-radius: 8px; padding: 10px; background: var(--surface2); cursor: pointer; transition: all 0.15s; }
+  .mode-card.active { border-color: var(--accent); background: rgba(255,144,232,0.06); }
+  .mode-card h3 { font-size: 12px; font-weight: 600; margin-bottom: 3px; display: flex; align-items: center; gap: 6px; }
+  .mode-card p { font-size: 10px; color: var(--text-dim); line-height: 1.4; }
+  .mode-card .dot { width: 10px; height: 10px; border-radius: 50%; border: 2px solid var(--border); flex-shrink: 0; }
+  .mode-card.active .dot { border-color: var(--accent); background: var(--accent); }
+  .png-info { display: none; }
+  .png-info.visible { display: flex; flex-direction: column; gap: 6px; }
+  .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+  .stat-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; padding: 6px 8px; }
+  .stat-card .stat-label { font-size: 9px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-dim); margin-bottom: 2px; }
+  .stat-card .stat-main { font-size: 12px; font-weight: 600; }
+  .stat-card .stat-sub { font-size: 9px; color: var(--text-dim); margin-top: 1px; }
+  .dpi-ok { color: var(--accent2); } .dpi-warn { color: var(--gold); } .dpi-bad { color: #f44; }
+  .alpha-legend { display: flex; gap: 8px; flex-wrap: wrap; font-size: 9px; color: var(--text-dim); padding: 6px 0 0; }
+  .alpha-legend span { display: flex; align-items: center; gap: 3px; }
+  .alpha-legend .dot { width: 8px; height: 8px; border-radius: 2px; }
+  .action-btn { flex:1; padding: 7px 6px; font-size: 10px; font-weight: 600; font-family: inherit; border: 1px solid var(--border); border-radius: 5px; background: var(--surface2); color: var(--text-dim); cursor: pointer; transition: all 0.15s; }
+  .action-btn:hover { border-color: var(--accent); color: var(--text); }
+  .action-btn.arming { border-color: var(--accent2); color: var(--accent2); }
+  .mask-row { display: flex; align-items: center; gap: 6px; margin-top: 6px; }
+  .mask-swatch { width: 12px; height: 12px; border-radius: 3px; flex-shrink: 0; border: 1px solid rgba(255,255,255,0.2); }
+  .mask-type { flex: 1; background: var(--surface2); color: var(--text); border: 1px solid var(--border); border-radius: 5px; padding: 4px 6px; font-size: 11px; font-family: inherit; cursor: pointer; }
+  .mask-del { background: none; border: 1px solid var(--border); border-radius: 5px; color: var(--text-dim); cursor: pointer; padding: 3px 7px; font-size: 12px; font-family: inherit; }
+  .mask-del:hover { border-color: #f44; color: #f44; }
+  .sec-ico { width:14px; height:14px; margin-right:7px; flex-shrink:0; color:var(--accent); }
+  .recommend-btn { width:100%; margin-top:8px; padding:9px; font-size:12px; font-weight:700; font-family:inherit; border:none; border-radius:8px; background:linear-gradient(90deg,var(--accent),var(--accent2)); color:#000; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; transition:all .15s; }
+  .recommend-btn:hover { transform:translateY(-1px); filter:brightness(1.08); }
+  .reco-note { margin-top:8px; font-size:10px; line-height:1.5; color:var(--text-dim); background:var(--surface2); border:1px solid var(--border); border-radius:7px; padding:8px 10px; }
+  .reco-note b { color:var(--accent); }
+  .min-warn { font-size:10px; line-height:1.4; border-radius:6px; padding:5px 8px; margin:6px 0; display:none; }
+  .min-warn.warn { display:block; background:rgba(252,199,0,0.12); border:1px solid rgba(252,199,0,0.35); color:var(--gold); }
+  .min-warn.bad { display:block; background:rgba(244,68,68,0.12); border:1px solid rgba(244,68,68,0.35); color:#f88; }
+  .min-warn.ok { display:block; background:rgba(84,245,149,0.1); border:1px solid rgba(84,245,149,0.25); color:var(--accent2); }
+  .analyze-overlay { position:absolute; inset:0; z-index:20; display:none; align-items:center; justify-content:center; overflow:hidden; pointer-events:none; background:rgba(10,10,10,0.35); backdrop-filter:blur(2px); }
+  .analyze-overlay.visible { display:flex; }
+  .analyze-glow { position:absolute; width:55%; height:55%; border-radius:50%; filter:blur(48px); opacity:0.6; }
+  .analyze-glow.g1 { background:radial-gradient(circle, var(--accent) 0%, transparent 70%); animation:glowmove1 2.4s ease-in-out infinite; }
+  .analyze-glow.g2 { background:radial-gradient(circle, var(--accent2) 0%, transparent 70%); animation:glowmove2 3.1s ease-in-out infinite; }
+  @keyframes glowmove1 { 0%{transform:translate(-45%,-25%) scale(0.8);} 50%{transform:translate(40%,30%) scale(1.25);} 100%{transform:translate(-45%,-25%) scale(0.8);} }
+  @keyframes glowmove2 { 0%{transform:translate(45%,-30%) scale(1.1);} 50%{transform:translate(-40%,35%) scale(0.75);} 100%{transform:translate(45%,-30%) scale(1.1);} }
+  .analyze-label { position:relative; z-index:2; display:flex; align-items:center; gap:9px; background:var(--surface); border:1px solid var(--border); padding:10px 18px; border-radius:22px; font-size:12px; font-weight:600; color:var(--text); box-shadow:0 6px 26px rgba(0,0,0,0.5); }
+  .analyze-spinner { width:13px; height:13px; border:2px solid var(--border); border-top-color:var(--accent); border-radius:50%; animation:spin 0.7s linear infinite; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+  .group-header { display:flex; align-items:center; gap:8px; margin-top:6px; padding:9px 11px; background:var(--surface2); border:1px solid var(--border); border-radius:9px; }
+  .group-header .group-ico { width:15px; height:15px; color:var(--accent); flex-shrink:0; }
+  .group-num { width:19px; height:19px; border-radius:50%; background:var(--accent); color:#000; font-size:11px; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .group-title { font-size:12px; font-weight:700; letter-spacing:0.2px; }
+  .lang-sel { display:inline-flex; border:1px solid var(--border); border-radius:6px; overflow:hidden; }
+  .lang-sel button { background:var(--surface2); border:none; color:var(--text-dim); cursor:pointer; padding:4px 8px; font-size:10px; font-weight:700; font-family:inherit; }
+  .lang-sel button.active { background:var(--accent); color:#000; }
+  .explain-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(6px); display: none; align-items: center; justify-content: center; z-index: 2000; padding: 20px; }
+  .explain-overlay.visible { display: flex; }
+  .explain-box { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 28px; max-width: 900px; width: 100%; max-height: 90vh; overflow-y: auto; position: relative; }
+  .explain-box h2 { font-size: 20px; font-weight: 700; margin-bottom: 10px; letter-spacing: -0.5px; }
+  .explain-intro { font-size: 13px; color: var(--text-dim); line-height: 1.6; margin-bottom: 20px; }
+  .explain-intro b { color: var(--text); }
+  .explain-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  .explain-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  .explain-card img { width: 100%; height: auto; display: block; border-bottom: 1px solid var(--border); background: #222; }
+  .explain-card figcaption { padding: 10px 12px; font-size: 11px; color: var(--text-dim); line-height: 1.5; }
+  .explain-card figcaption b { color: var(--accent); font-size: 12px; }
+  .explain-foot { font-size: 12px; color: var(--text-dim); line-height: 1.6; margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--border); }
+  .explain-close { position: absolute; top: 14px; right: 16px; background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; color: var(--text-dim); cursor: pointer; padding: 4px 9px; font-size: 14px; font-family: inherit; }
+  .explain-close:hover { border-color: #f44; color: #f44; }
+  @media (max-width: 680px) { .explain-grid { grid-template-columns: 1fr; } }
+  body.light-mode { --bg: #f5f5f5; --surface: #ffffff; --surface2: #f0f0f0; --border: #e0e0e0; --text: #1a1a1a; --text-dim: #555; }
+  #loupe { position: fixed; width: 160px; height: 160px; border-radius: 50%; border: 2px solid var(--accent); box-shadow: 0 4px 20px rgba(0,0,0,0.6); pointer-events: none; display: none; z-index: 100; overflow: hidden; background: #000; }
+  #loupe canvas { width: 100%; height: 100%; display: block; image-rendering: pixelated; }
+  .history-btns { display: flex; gap: 4px; margin-left: 6px; }
+  .history-btns button { background: var(--surface2); border: 1px solid var(--border); border-radius: 5px; color: var(--text-dim); cursor: pointer; padding: 3px 7px; font-size: 12px; font-family: inherit; }
+  .history-btns button:hover:not(:disabled) { border-color: var(--accent); color: var(--text); }
+  .history-btns button:disabled { opacity: 0.3; cursor: not-allowed; }
+  .preset-row { display: flex; gap: 4px; margin-top: 6px; }
+  .preset-row select { flex: 1; background: var(--surface2); color: var(--text); border: 1px solid var(--border); border-radius: 5px; padding: 5px 6px; font-size: 11px; font-family: inherit; }
+  .preset-row button { background: var(--surface2); border: 1px solid var(--border); border-radius: 5px; color: var(--text-dim); cursor: pointer; padding: 4px 8px; font-size: 11px; font-family: inherit; }
+  .preset-row button:hover { border-color: var(--accent); color: var(--text); }
+  @media (max-width: 760px) { .layout { flex-direction: column; } .sidebar { width: 100%; min-width: 0; max-height: 42vh; border-right: none; border-bottom: 1px solid var(--border); } .canvas-area { min-height: 50vh; } }
+</style>
+</head>
+<body>
+<div id="tipBox"></div>
+<div id="loupe"><canvas id="loupeCanvas" width="160" height="160"></canvas></div>
+
+<div class="explain-overlay" id="explainModal">
+  <div class="explain-box">
+    <button class="explain-close" id="explainClose">✕</button>
+    <h2 data-i18n="modalTitle">Was ist Halftone — und warum?</h2>
+    <p class="explain-intro" data-i18n-html="modalIntro">DTF-Druck kann nur <b>voll deckende Tinte</b> drucken — keine echte Halbtransparenz. Weiche Verläufe, Glows und Schatten würden als steife, deckende Fläche drucken (wie ein Plastik-Sticker). <b>Halftone</b> wandelt diese Übergänge in ein Punktraster um: Das Auge sieht wieder einen weichen Verlauf, aber es liegt viel weniger Tinte auf dem Textil.</p>
+    <div class="explain-grid">
+      <figure class="explain-card">
+        <div style="height:150px; background:linear-gradient(to right, #000, #fff);"></div>
+        <figcaption data-i18n-html="fig1"><b>1. Der Verlauf</b><br>Ein weicher Glow oder Schatten. Genau das kann DTF nicht sauber drucken — es würde deckend & steif.</figcaption>
+      </figure>
+      <figure class="explain-card">
+        <div style="height:150px; background:radial-gradient(circle, #000 20%, transparent 20%), radial-gradient(circle, #000 40%, transparent 40%), radial-gradient(circle, #000 60%, transparent 60%); background-size: 20px 20px; background-position: 0 0, 10px 10px;"></div>
+        <figcaption data-i18n-html="fig2"><b>2. Halftone-Raster</b><br>Der Verlauf wird zu Punkten: groß wo viel Farbe, klein wo wenig. Aus Distanz verschmelzen sie wieder zum Verlauf.</figcaption>
+      </figure>
+      <figure class="explain-card">
+        <div style="height:150px; background-color:#fff; background-image:radial-gradient(circle, #000 2px, transparent 2px); background-size: 15px 15px;"></div>
+        <figcaption data-i18n-html="fig3"><b>3. Auf dem Shirt</b><br>Zwischen den Punkten scheint das Textil durch: weniger Tinte, weicher Griff, atmungsaktiv — kein Plastik-Gefühl.</figcaption>
+      </figure>
+    </div>
+    <p class="explain-foot" data-i18n-html="explainFoot">💡 Deshalb rastert dieses Tool gezielt die halbtransparenten/weichen Bereiche — und lässt (mit Kantenschutz &amp; Masken) scharfe Motivteile unangetastet.</p>
+  </div>
+</div>
+
+<header>
+  <div style="display:flex; align-items:center; gap:10px;">
+    <img src="https://cdn.prod.website-files.com/63f77c4bf3743d2e8fc6a87c/645910af508b00af623c5e35_Vectors-Wrapper.svg" alt="exe" style="height:20px; filter:invert(1);" class="logo">
+    <h1>Halftone Tool</h1>
+  </div>
+  <div style="display:flex; align-items:center; gap:8px;">
+    <div class="history-btns">
+      <button id="undoBtn" title="Undo (Ctrl+Z)" disabled aria-label="Undo">↶</button>
+      <button id="redoBtn" title="Redo (Ctrl+Y)" disabled aria-label="Redo">↷</button>
+    </div>
+    <div class="lang-sel" id="langSel"><button data-lang="de" class="active">DE</button><button data-lang="en">EN</button></div>
+    <button id="explainBtn" style="background:var(--accent); border:none; border-radius:6px; color:#000; cursor:pointer; padding:5px 11px; font-size:11px; font-weight:700; font-family:inherit;" data-i18n="explainBtn">Was ist Halftone?</button>
+    <button id="themeToggle" title="Light/Dark" style="background:none; border:1px solid var(--border); border-radius:6px; color:var(--text-dim); cursor:pointer; padding:4px 7px;">🌙</button>
+    <div class="badge">DTF · exe.network</div>
+  </div>
+</header>
+
+<div class="layout">
+  <div class="sidebar">
+    <div class="group-header"><span class="group-num">1</span><svg class="group-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><span class="group-title" data-i18n="grpSetup">Bild & Modus</span></div>
+    <div>
+      <div class="section-title"><svg class="sec-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg><span data-i18n="secMode">Was soll gerastert werden?</span></div>
+      <div class="control-group">
+        <div class="mode-card active" data-mode="transparency" role="button" tabindex="0" aria-label="Mode: only semi-transparency">
+          <h3><span class="dot"></span> <span data-i18n="modeTransTitle">Nur Halbtransparenz</span></h3>
+          <p data-i18n="modeTransDesc">Volle Bereiche bleiben 1:1 erhalten. Nur weiche Übergänge (Glow, Schatten, Verläufe, <100% Deckkraft) werden zu Punkten.</p>
+        </div>
+        <div class="mode-card" data-mode="full" role="button" tabindex="0" aria-label="Mode: whole design">
+          <h3><span class="dot"></span> <span data-i18n="modeFullTitle">Ganzes Motiv</span></h3>
+          <p data-i18n="modeFullDesc">Das komplette Motiv wird gerastert (für Fotos/Poster). Shirtfarbe wird ausgeknockt.</p>
+        </div>
+        <button class="recommend-btn" id="recommendBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"/></svg> <span data-i18n="recommendBtn">Auto-Empfehlung</span></button>
+        <div class="reco-note" id="recoNote" style="display:none;"></div>
+      </div>
+    </div>
+    <div>
+      <div class="section-title"><svg class="sec-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.7s6 6.3 6 10.3a6 6 0 0 1-12 0c0-4 6-10.3 6-10.3z"/></svg><span data-i18n="secShirt">Shirt-Farbe</span> <span class="tip" data-i18n-tip="tipShirt" data-tip="Bestimmt den Vorschau-Hintergrund (damit du das echte Ergebnis siehst) und — im Modus 'Ganzes Motiv' — welche Farbe ausgeknockt wird (transparent bleibt).">?</span></div>
+      <div class="btn-group" id="shirtColor">
+        <button class="active" data-color="#000000" data-i18n="clrBlack">Schwarz</button>
+        <button data-color="#ffffff" data-i18n="clrWhite">Weiß</button>
+        <button data-color="#808080" data-i18n="clrGray">Grau</button>
+        <button data-color="custom" data-i18n="clrCustom">Custom</button>
+      </div>
+      <div class="color-row" id="customColorRow" style="display:none; margin-top:8px;">
+        <input type="color" id="customColor" value="#3a5a40">
+        <span style="font-size:11px;" data-i18n="shirtPick">Echte Shirtfarbe wählen</span>
+      </div>
+    </div>
+    <div class="group-header"><span class="group-num">2</span><svg class="group-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="6" cy="6" r="2.3"/><circle cx="13" cy="6" r="1.3"/><circle cx="19" cy="6" r="1"/><circle cx="6" cy="13" r="1.3"/><circle cx="13" cy="13" r="2.3"/><circle cx="19" cy="13" r="1.3"/><circle cx="6" cy="19" r="1"/><circle cx="13" cy="19" r="1.3"/><circle cx="19" cy="19" r="2.3"/></svg><span class="group-title" data-i18n="grpRaster">Raster einstellen</span></div>
+    <div>
+      <div class="section-title"><svg class="sec-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="6" cy="6" r="2.3"/><circle cx="13" cy="6" r="1.3"/><circle cx="19" cy="6" r="1"/><circle cx="6" cy="13" r="1.3"/><circle cx="13" cy="13" r="2.3"/><circle cx="19" cy="13" r="1.3"/><circle cx="6" cy="19" r="1"/><circle cx="13" cy="19" r="1.3"/><circle cx="19" cy="19" r="2.3"/></svg><span data-i18n="secScreen">Raster (Halftone Screen)</span></div>
+      <div class="control-group">
+        <label><span data-i18n="lblDotsize">Punktgröße</span> <span class="value" id="freqVal">35 LPI</span> <span class="tip" data-i18n-tip="tipFreq" data-tip="Frequency in Lines Per Inch (bei 300 DPI). Niedriger = größere, gröbere Punkte. Höher = feinere Punkte, weichere Übergänge. DTF-Standard: 30–40 LPI.">?</span></label>
+        <input type="range" id="freq" min="15" max="55" value="35" step="1" aria-label="Halftone frequency LPI">
+        <div class="btn-group" id="freqPreset" style="margin-top:2px;">
+          <button data-freq="25" data-i18n="freqCoarse">Grob</button>
+          <button class="active" data-freq="35" data-i18n="freqStd">Standard</button>
+          <button data-freq="45" data-i18n="freqFine">Fein</button>
+        </div>
+        <label style="margin-top:6px;"><span data-i18n="lblAngle">Winkel</span> <span class="value" id="angleVal">22.5°</span> <span class="tip" data-i18n-tip="tipAngle" data-tip="Rasterwinkel. 22,5° ist Siebdruck-Standard und vermeidet Moiré. 0° = horizontale/vertikale Ausrichtung.">?</span></label>
+        <input type="range" id="angle" min="0" max="45" value="22.5" step="0.5" aria-label="Halftone angle">
+        <label style="margin-top:6px;"><span data-i18n="lblShape">Form</span> <span class="tip" data-i18n-tip="tipShape" data-tip="Punktform. Round ist DTF-Standard (hält Kleberpulver am besten, weichste Übergänge).">?</span></label>
+        <div class="btn-group" id="shape">
+          <button class="active" data-shape="round">Round</button>
+          <button data-shape="diamond">Diamond</button>
+          <button data-shape="line">Line</button>
+        </div>
+      </div>
+    </div>
+    <div id="levelsSection">
+      <div class="section-title"><svg class="sec-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1.5" y1="14" x2="6.5" y2="14"/><line x1="9.5" y1="8" x2="14.5" y2="8"/><line x1="17.5" y1="16" x2="22.5" y2="16"/></svg><span id="levelsTitle">Tonwerte (Levels)</span></div>
+      <div class="control-group">
+        <label><span data-i18n="lblCoverage">Deckung / Weißpunkt</span> <span class="value" id="coverageVal">55%</span> <span class="tip" data-i18n-tip="tipCoverage" data-tip="Ab diesem Wert wird alles voll deckend gedruckt (keine Punkte mehr). Niedriger = mehr Vollfläche/vibrant. Entspricht dem Weiß-Regler der Levels.">?</span></label>
+        <input type="range" id="coverage" min="10" max="95" value="55" step="1" aria-label="Coverage white point">
+        <label style="margin-top:4px;"><span data-i18n="lblGamma">Mitten (Gamma)</span> <span class="value" id="gammaVal">1.00</span> <span class="tip" data-i18n-tip="tipGamma" data-tip="DER Feinjustierungs-Regler. Trennt helle/mittlere Bereiche voneinander. Höher = helle Bereiche werden mehr zu Punkten (mehr Ink). Niedriger = helle Bereiche verschwinden schneller (Shirt scheint durch). Nutze diesen um ähnlich helle Töne zu differenzieren.">?</span></label>
+        <input type="range" id="gamma" min="0.2" max="4" value="1" step="0.02" aria-label="Gamma midtones">
+        <label style="margin-top:4px;"><span data-i18n="lblBlackPt">Schwarzpunkt</span> <span class="value" id="blackPtVal">5%</span> <span class="tip" data-i18n-tip="tipBlackPt" data-tip="Killt zu kleine, matschige Punkte. Höher = mehr fast-transparente/dunkle Töne fallen ganz weg (sauberer, aber weniger Detail).">?</span></label>
+        <input type="range" id="blackPt" min="0" max="40" value="5" step="1" aria-label="Black point">
+      </div>
+      <div class="hint" id="levelsHint" style="margin-top:6px;" data-i18n-html="levelsHint">💡 Kannst du helle Bereiche nicht trennen? Ziehe <b>Mitten (Gamma)</b> hoch und <b>Weißpunkt</b> runter.</div>
+    </div>
+    <div class="group-header"><span class="group-num">3</span><svg class="group-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 4V2M15 16v-2M8 9h2M20 9h2M17.8 11.8l1.4 1.4M17.8 6.2l1.4-1.4M3 21l9-9M12.2 6.2l-1.4-1.4"/></svg><span class="group-title" data-i18n="grpCleanup">DTF-Aufbereitung</span></div>
+    <div id="edgeSection">
+      <div class="section-title"><svg class="sec-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg><span data-i18n="secEdge">Kantenschutz</span> <span class="tip" data-i18n-tip="tipEdge" data-tip="Verhindert, dass der dünne Anti-Alias-Saum an sauberen Motivkanten durchlöchert wird. Nur der Saum wird geschützt — breite Glows/Schatten bleiben gerastert. Nur einschalten, wenn Kanten Probleme machen.">?</span></div>
+      <div class="control-group">
+        <label style="cursor:pointer;"><span><input type="checkbox" id="edgeProtect" style="accent-color:var(--accent); margin-right:6px;"><b data-i18n="edgeEnable">Kantenschutz aktivieren</b></span></label>
+        <div id="edgeControls" style="display:none; margin-top:2px;">
+          <label><span data-i18n="lblSolidThr">Vollton-Schwelle</span> <span class="value" id="solidThrVal">90%</span> <span class="tip" data-i18n-tip="tipSolidThr" data-tip="Ab dieser Deckkraft gilt ein Pixel als voll deckend (bleibt kristallklar, wird nie gerastert).">?</span></label>
+          <input type="range" id="solidThr" min="50" max="99" value="90" step="1">
+          <label style="margin-top:4px;"><span data-i18n="lblProtectPx">Saum-Schutz</span> <span class="value" id="protectPxVal">2px</span> <span class="tip" data-i18n-tip="tipProtectPx" data-tip="Halbtransparente Pixel, die näher als dieser Abstand an einem Vollton-Pixel liegen, werden hart gesnappt (saubere Kante). Option 2: Proximity.">?</span></label>
+          <input type="range" id="protectPx" min="0" max="6" value="2" step="1">
+          <label style="margin-top:4px;"><span data-i18n="lblMinWidth">Min. Rasterbreite</span> <span class="value" id="minWidthVal">8px</span> <span class="tip" data-i18n-tip="tipMinWidth" data-tip="Nur halbtransparente Bänder, die breiter als dieser Wert sind, werden gerastert. Dünnere Säume werden gesnappt. Option 4: Breiten-Filter. Richtwert ≈ eine Rasterzelle.">?</span></label>
+          <input type="range" id="minWidth" min="0" max="24" value="8" step="1">
+          <div class="hint" data-i18n-html="edgeHint">Saum wird zu <b>Vollton</b> (≥50% Deckkraft) oder <b>transparent</b> gesnappt. Breite Glows/Schatten bleiben Punkte.</div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="section-title"><svg class="sec-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 21 8.5 17.5 19 6.5 19 3 8.5 12 2"/></svg><span data-i18n="secMasks">Masken (Bereiche)</span> <span class="tip" data-i18n-tip="tipMasks" data-tip="Zeichne Bereiche direkt ins Bild, in denen das Tool anders arbeiten soll. 'Original erhalten' = Bereich bleibt komplett unbearbeitet (Pixel 1:1). 'Kantenschutz' = nur dort wird der Anti-Alias-Saum geschützt. Mehrere Masken möglich, jederzeit umschaltbar/löschbar.">?</span></div>
+      <div class="control-group">
+        <div style="display:flex; gap:4px; align-items:stretch;">
+          <button class="action-btn" id="drawOriginal" data-i18n="drawOriginal">＋ Original-Bereich</button>
+          <button class="action-btn" id="drawProtect" data-i18n="drawProtect">＋ Kantenschutz</button>
+          <button class="action-btn" id="toggleMaskView" title="Maskenformen ein-/ausblenden (Effekt bleibt)" style="flex:0 0 auto; width:34px; display:flex; align-items:center; justify-content:center;"><svg id="maskEyeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg></button>
+        </div>
+        <div id="drawActions" style="display:none; gap:4px; margin-top:6px;">
+          <button class="action-btn" id="closeMask" style="border-color:var(--accent2); color:var(--accent2);">✓ <span data-i18n="closeMask">Maske schließen</span></button>
+          <button class="action-btn" id="cancelMask">✕ <span data-i18n="cancelMask">Abbrechen</span></button>
+        </div>
+        <div id="maskList"></div>
+        <div class="hint" id="maskHint" data-i18n="maskHintDefault">Button klicken, dann mit gedrückter Maus eine Form ins Bild zeichnen.</div>
+      </div>
+    </div>
+    <div>
+      <div class="section-title"><svg class="sec-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><span data-i18n="secMinFeature">DTF Mindestgröße</span> <span class="tip" data-i18n-tip="tipMinFeature" data-tip="Verhindert Punkte und Lücken, die zu klein für DTF sind.">?</span></div>
+      <div class="control-group">
+        <label style="cursor:pointer;"><span><input type="checkbox" id="minFeature" checked style="accent-color:var(--accent); margin-right:6px;"><b data-i18n="minFeatureEnable">Mindestgröße-Schutz</b></span></label>
+        <div id="minWarn" class="min-warn"></div>
+        <div id="minFeatureControls" style="margin-top:2px;">
+          <label><span data-i18n="lblMinFeature">Min. Feature</span> <span class="value" id="minPxVal">6px · 0.50mm</span></label>
+          <input type="range" id="minPx" min="3" max="12" value="6" step="1">
+          <div style="display:flex; gap:10px; margin-top:4px;">
+            <label class="checkbox-row" style="cursor:pointer;"><input type="checkbox" id="closeGaps" checked style="accent-color:var(--accent);"> <span data-i18n="minGapsLabel">Lücken schließen</span></label>
+            <label class="checkbox-row" style="cursor:pointer;"><input type="checkbox" id="removeDots" style="accent-color:var(--accent);"> <span data-i18n="minDotsLabel">Punkte entfernen</span></label>
+          </div>
+          <div class="hint" id="minFeatureHint" data-i18n="minFeatureHint">Bei 300 DPI. 0,25 mm ≈ 3px, 0,34 mm ≈ 4px, 0,5 mm ≈ 6px.</div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="section-title"><svg class="sec-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2v14a2 2 0 0 0 2 2h14"/><path d="M2 6h14a2 2 0 0 1 2 2v14"/></svg><span data-i18n="secEdges">Ränder</span> <span class="tip" data-i18n-tip="tipEdges" data-tip="Anti-Aliasing erzeugt halbtransparente Randpixel → weiße Ränder beim DTF-Druck. 'Hartes Alpha' macht global jedes Pixel voll deckend oder voll transparent.">?</span></div>
+      <div class="control-group">
+        <label style="cursor:pointer;"><span><input type="checkbox" id="hardAlpha" style="accent-color:var(--accent); margin-right:6px;"><span data-i18n="hardAlphaLabel">Hartes Alpha (global schärfen)</span></span></label>
+        <div id="hardAlphaRow" style="display:none;">
+          <label><span data-i18n="lblThreshold">Schwelle</span> <span class="value" id="thresholdVal">50%</span></label>
+          <input type="range" id="threshold" min="1" max="99" value="50" step="1">
+          <div class="hint" data-i18n-html="hardAlphaHint">Ganzes Bild: Pixel über der Schwelle → voll deckend, darunter → transparent.</div>
+        </div>
+      </div>
+    </div>
+    <div class="group-header"><span class="group-num">4</span><svg class="group-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg><span class="group-title" data-i18n="grpViewFile">Kontrolle</span></div>
+    <div>
+      <div class="section-title"><svg class="sec-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg><span data-i18n="secView">Ansicht</span></div>
+      <div class="btn-group" id="viewMode">
+        <button class="active" data-view="shirt" data-i18n="viewShirt">Auf Shirt</button>
+        <button data-view="transparent" data-i18n="viewTransparent">Transparent</button>
+        <button data-view="original" data-i18n="viewOriginal">Original</button>
+      </div>
+    </div>
+    <div>
+      <div class="section-title"><svg class="sec-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg><span data-i18n="secFile">Datei-Info</span></div>
+      <div class="png-info" id="pngInfo">
+        <div class="stat-grid">
+          <div class="stat-card"><div class="stat-label" data-i18n="statResLabel">Auflösung</div><div class="stat-main" id="statRes">–</div><div class="stat-sub" id="statFileSize">–</div></div>
+          <div class="stat-card"><div class="stat-label">DPI</div><div class="stat-main" id="statDpi">–</div><div class="stat-sub" id="statDpiSub">–</div></div>
+          <div class="stat-card"><div class="stat-label" data-i18n="statSizeLabel">Größe (cm)</div><div class="stat-main" id="statCm">–</div><div class="stat-sub" id="statCmSub">–</div></div>
+          <div class="stat-card"><div class="stat-label" data-i18n="statTranspLabel">Transparenz</div><div class="stat-main" id="statAlpha">–</div><div class="stat-sub" id="statAlphaSub">–</div></div>
+        </div>
+        <button class="action-btn" id="alphaAnalyzeBtn" data-view="alpha" style="margin-top:6px;" data-i18n="alphaAnalysis">Alpha-Analyse (Transparenz-Karte)</button>
+        <div class="alpha-legend" id="alphaLegend" style="display:none;">
+          <span><span class="dot" style="background:#ff3cd2"></span> <span data-i18n="legTransp">Transparent</span></span>
+          <span><span class="dot" style="background:#e0ff00"></span> <span data-i18n="legSemi">Halbtransparent</span></span>
+          <span><span class="dot" style="background:#232323"></span> <span data-i18n="legOpaque">Opak</span></span>
+        </div>
+      </div>
+      <div class="hint" id="pngInfoHint" data-i18n="pngInfoHint">Bild laden um Infos zu sehen</div>
+    </div>
+    <div>
+      <div class="section-title"><svg class="sec-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg><span data-i18n="secPresets">Presets</span></div>
+      <div class="preset-row">
+        <select id="presetSelect" aria-label="Saved presets"><option value="">— Preset wählen —</option></select>
+        <button id="presetSave" title="Save current settings as preset">💾</button>
+        <button id="presetDel" title="Delete selected preset">🗑</button>
+      </div>
+    </div>
+    <div class="group-header"><span class="group-num">5</span><svg class="group-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg><span class="group-title" data-i18n="grpExport">Export</span></div>
+    <div>
+      <div class="section-title"><svg class="sec-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg><span data-i18n="secExport">Export</span></div>
+      <div class="control-group">
+        <div style="display:flex; gap:6px; align-items:center;">
+          <label style="flex:1; font-size:11px;"><span data-i18n="lblWidthCm">Breite (cm)</span> <input type="number" id="exportWidthCm" value="30" min="1" max="200" step="0.1" style="width:52px; background:var(--surface2); color:var(--text); border:1px solid var(--border); border-radius:4px; padding:4px; font-size:11px; font-family:inherit; margin-left:4px;" aria-label="Export width cm"></label>
+          <label style="flex:1; font-size:11px;">DPI <input type="number" id="exportDpi" value="300" min="72" max="1200" step="1" style="width:52px; background:var(--surface2); color:var(--text); border:1px solid var(--border); border-radius:4px; padding:4px; font-size:11px; font-family:inherit; margin-left:4px;" aria-label="Export DPI"></label>
+        </div>
+        <div class="hint" id="exportInfo">→ 3543 px breit</div>
+        <div class="hint" data-i18n-html="exportHardHint">Export ist immer <b>hart</b> — keine halbtransparenten Pixel (DTF-sicher).</div>
+      </div>
+    </div>
+    <div class="export-buttons">
+      <button class="export-btn png" id="exportPng">PNG</button>
+    </div>
+  </div>
+
+  <div class="canvas-area" id="canvasArea">
+    <div class="checkerboard" id="checker"></div>
+    <canvas id="viewCanvas"></canvas>
+    <div class="analyze-overlay" id="analyzeOverlay">
+      <div class="analyze-glow g1"></div><div class="analyze-glow g2"></div>
+      <div class="analyze-label"><span class="analyze-spinner"></span><span data-i18n="analyzing">Design wird analysiert…</span></div>
+    </div>
+    <button class="close-btn" id="closeBtn">✕</button>
+    <div class="drop-zone" id="dropZone">
+      <div class="drop-icon">↑</div>
+      <div class="drop-text"><span data-i18n="dropPre">Bild ablegen oder</span> <span id="browseLink" data-i18n="dropBrowse">durchsuchen</span></div>
+    </div>
+    <div class="info-bar" id="infoBar"><span id="infoSize"></span><span id="infoAlpha"></span></div>
+    <div class="zoom-bar" id="zoomBar">
+      <button id="zoomOut">−</button><span id="zoomLevel">100%</span><button id="zoomIn">+</button><button id="zoomFit">Fit</button>
+    </div>
+  </div>
+</div>
+
+<input type="file" accept="image/*" id="fileInput" style="display:none;">
+
+<script>
+(function() {
+  let srcW = 0, srcH = 0;
+  let srcRGBA = null, sourceImg = null;
+  let zoom = 1, panX = 0, panY = 0;
+  let isDragging = false, dragStartX = 0, dragStartY = 0, panStartX = 0, panStartY = 0;
+  let rafId = null, workerBusy = false, worker = null; // Worker declarado no topo
+  
+  let mode = 'transparency', shirtColor = '#000000', currentView = 'shirt';
+  let masks = [], maskField = null, showMasks = true;
+  let drawMode = false, drawType = 'original', curPts = [], hoverPt = null, movedDuringDraw = false;
+
+  const viewCanvas = document.getElementById('viewCanvas');
+  const vCtx = viewCanvas.getContext('2d');
+  const outCanvas = document.createElement('canvas');
+  const oCtx = outCanvas.getContext('2d');
+  const canvasArea = document.getElementById('canvasArea');
+  const dropZone = document.getElementById('dropZone');
+  const fileInput = document.getElementById('fileInput');
+  const checker = document.getElementById('checker');
+  const loupe = document.getElementById('loupe');
+  const loupeCanvas = document.getElementById('loupeCanvas');
+  const loupeCtx = loupeCanvas.getContext('2d');
+
+  const $ = id => document.getElementById(id);
+  const getNum = id => parseFloat($(id).value);
+  const getChecked = id => $(id).checked;
+
+  const history = { stack: [], index: -1, max: 40 };
+  function snapshot() {
+    return { mode, shirtColor, currentView, freq: getNum('freq'), angle: getNum('angle'),
+      shape: (document.querySelector('#shape button.active')||{}).dataset?.shape || 'round',
+      coverage: getNum('coverage'), gamma: getNum('gamma'), blackPt: getNum('blackPt'),
+      edgeProtect: getChecked('edgeProtect'), solidThr: getNum('solidThr'),
+      protectPx: getNum('protectPx'), minWidth: getNum('minWidth'),
+      minFeature: getChecked('minFeature'), minPx: getNum('minPx'),
+      closeGaps: getChecked('closeGaps'), removeDots: getChecked('removeDots'),
+      hardAlpha: getChecked('hardAlpha'), threshold: getNum('threshold'),
+      masks: JSON.parse(JSON.stringify(masks)) };
+  }
+  function pushHistory() {
+    if (history.index < history.stack.length - 1) history.stack = history.stack.slice(0, history.index + 1);
+    history.stack.push(snapshot());
+    if (history.stack.length > history.max) history.stack.shift();
+    history.index = history.stack.length - 1;
+    updateHistoryBtns();
+  }
+  function applySnapshot(s) {
+    mode = s.mode; shirtColor = s.shirtColor;
+    document.querySelectorAll('.mode-card').forEach(c => c.classList.toggle('active', c.dataset.mode === s.mode));
+    document.querySelectorAll('#shirtColor button').forEach(b => {
+      const isActive = (b.dataset.color === s.shirtColor) || (b.dataset.color === 'custom' && !['#000000','#ffffff','#808080'].includes(s.shirtColor));
+      b.classList.toggle('active', isActive);
+    });
+    if (!['#000000','#ffffff','#808080'].includes(s.shirtColor)) { $('customColorRow').style.display = 'flex'; $('customColor').value = s.shirtColor; }
+    else $('customColorRow').style.display = 'none';
+    const set = (id, v) => { const el = $(id); el.value = v; const ev = new Event('input'); el.dispatchEvent(ev); };
+    set('freq', s.freq); set('angle', s.angle); set('coverage', s.coverage); set('gamma', s.gamma); set('blackPt', s.blackPt);
+    set('solidThr', s.solidThr); set('protectPx', s.protectPx); set('minWidth', s.minWidth); set('minPx', s.minPx); set('threshold', s.threshold);
+    document.querySelectorAll('#shape button').forEach(b => b.classList.toggle('active', b.dataset.shape === s.shape));
+    ['edgeProtect','minFeature','closeGaps','removeDots','hardAlpha'].forEach(id => { $(id).checked = s[id]; const ev = new Event('change'); $(id).dispatchEvent(ev); });
+    masks = JSON.parse(JSON.stringify(s.masks)); maskField = null; edgeMap = null; rebuildMaskList();
+    updateShirtPreview(); render();
+  }
+  function undo() { if (history.index > 0) { history.index--; applySnapshot(history.stack[history.index]); updateHistoryBtns(); } }
+  function redo() { if (history.index < history.stack.length - 1) { history.index++; applySnapshot(history.stack[history.index]); updateHistoryBtns(); } }
+  function updateHistoryBtns() { $('undoBtn').disabled = history.index <= 0; $('redoBtn').disabled = history.index >= history.stack.length - 1; }
+  $('undoBtn').addEventListener('click', undo);
+  $('redoBtn').addEventListener('click', redo);
+
+  const PRESET_KEY = 'halftone_presets_v1';
+  function loadPresets() { try { return JSON.parse(localStorage.getItem(PRESET_KEY) || '{}'); } catch { return {}; } }
+  function savePresets(p) { try { localStorage.setItem(PRESET_KEY, JSON.stringify(p)); } catch(e) { console.warn('Preset save failed', e); } }
+  function refreshPresetSelect() {
+    const sel = $('presetSelect'); const cur = sel.value; const presets = loadPresets();
+    sel.innerHTML = '<option value="">— Preset wählen —</option>' + Object.keys(presets).map(k => `<option value="${k}">${k}</option>`).join('');
+    if (presets[cur]) sel.value = cur;
+  }
+  $('presetSave').addEventListener('click', () => {
+    const name = prompt('Preset-Name:'); if (!name) return;
+    const presets = loadPresets(); presets[name] = snapshot(); savePresets(presets); refreshPresetSelect(); $('presetSelect').value = name;
+  });
+  $('presetSelect').addEventListener('change', function() {
+    if (!this.value) return; const p = loadPresets()[this.value];
+    if (p) { applySnapshot(p); pushHistory(); }
+  });
+  $('presetDel').addEventListener('click', () => {
+    const name = $('presetSelect').value; if (!name) return;
+    if (!confirm(`Preset "${name}" löschen?`)) return;
+    const presets = loadPresets(); delete presets[name]; savePresets(presets); refreshPresetSelect();
+  });
+  refreshPresetSelect();
+
+  const LANG = { de: {
+    explainBtn: "Was ist Halftone?", modalTitle: "Was ist Halftone — und warum?",
+    modalIntro: "DTF-Druck kann nur <b>voll deckende Tinte</b> drucken — keine echte Halbtransparenz. Weiche Verläufe, Glows und Schatten würden als steife, deckende Fläche drucken. <b>Halftone</b> wandelt diese Übergänge in ein Punktraster um: Das Auge sieht wieder einen weichen Verlauf, aber es liegt viel weniger Tinte auf dem Textil.",
+    fig1: "<b>1. Der Verlauf</b><br>Ein weicher Glow oder Schatten. Genau das kann DTF nicht sauber drucken.",
+    fig2: "<b>2. Halftone-Raster</b><br>Der Verlauf wird zu Punkten: groß wo viel Farbe, klein wo wenig.",
+    fig3: "<b>3. Auf dem Shirt</b><br>Zwischen den Punkten scheint das Textil durch: weniger Tinte, weicher Griff.",
+    explainFoot: "💡 Deshalb rastert dieses Tool gezielt die halbtransparenten/weichen Bereiche.",
+    secMode: "Was soll gerastert werden?", modeTransTitle: "Nur Halbtransparenz", modeTransDesc: "Volle Bereiche bleiben 1:1 erhalten.",
+    modeFullTitle: "Ganzes Motiv", modeFullDesc: "Das komplette Motiv wird gerastert (für Fotos/Poster).",
+    secShirt: "Shirt-Farbe", tipShirt: "Bestimmt den Vorschau-Hintergrund und — im Modus 'Ganzes Motiv' — welche Farbe ausgeknockt wird.",
+    clrBlack: "Schwarz", clrWhite: "Weiß", clrGray: "Grau", clrCustom: "Custom", shirtPick: "Echte Shirtfarbe wählen",
+    secScreen: "Raster (Halftone Screen)", lblDotsize: "Punktgröße", tipFreq: "Frequency in Lines Per Inch (bei 300 DPI).",
+    freqCoarse: "Grob", freqStd: "Standard", freqFine: "Fein", lblAngle: "Winkel", tipAngle: "Rasterwinkel. 22,5° vermeidet Moiré.",
+    lblShape: "Form", tipShape: "Punktform. Round ist DTF-Standard.",
+    levelsFull: "Tonwerte (Levels)", levelsTrans: "Übergang", lblCoverage: "Deckung / Weißpunkt", tipCoverage: "Ab diesem Wert wird alles voll deckend gedruckt.",
+    lblGamma: "Mitten (Gamma)", tipGamma: "DER Feinjustierungs-Regler.", lblBlackPt: "Schwarzpunkt", tipBlackPt: "Killt zu kleine, matschige Punkte.",
+    levelsHint: "💡 Kannst du helle Bereiche nicht trennen? Ziehe <b>Mitten (Gamma)</b> hoch.",
+    secEdge: "Kantenschutz", tipEdge: "Verhindert, dass der dünne Anti-Alias-Saum durchlöchert wird.",
+    edgeEnable: "Kantenschutz aktivieren", lblSolidThr: "Vollton-Schwelle", tipSolidThr: "Ab dieser Deckkraft gilt ein Pixel als voll deckend.",
+    lblProtectPx: "Saum-Schutz", tipProtectPx: "Halbtransparente Pixel, die näher an einem Vollton-Pixel liegen, werden hart gesnappt.",
+    lblMinWidth: "Min. Rasterbreite", tipMinWidth: "Nur halbtransparente Bänder, die breiter als dieser Wert sind, werden gerastert.",
+    edgeHint: "Saum wird zu <b>Vollton</b> (≥50% Deckkraft) oder <b>transparent</b> gesnappt.",
+    secEdges: "Ränder", tipEdges: "Anti-Aliasing erzeugt halbtransparente Randpixel → weiße Ränder beim DTF-Druck.",
+    hardAlphaLabel: "Hartes Alpha (global schärfen)", lblThreshold: "Schwelle", hardAlphaHint: "Ganzes Bild: Pixel über der Schwelle → voll deckend.",
+    secMasks: "Masken (Bereiche)", tipMasks: "Zeichne Bereiche direkt ins Bild, in denen das Tool anders arbeiten soll.",
+    drawOriginal: "＋ Original-Bereich", drawProtect: "＋ Kantenschutz", maskHintDefault: "Button klicken, dann mit gedrückter Maus eine Form ins Bild zeichnen.",
+    secView: "Ansicht", viewShirt: "Auf Shirt", viewAlpha: "Transparenz", viewOriginal: "Original",
+    legTransp: "Transparent", legSemi: "Halbtransparent", legOpaque: "Opak",
+    secFile: "Datei-Info", statResLabel: "Auflösung", statSizeLabel: "Größe (cm)", statTranspLabel: "Transparenz",
+    pngInfoHint: "Bild laden um Infos zu sehen", secExport: "Export", lblWidthCm: "Breite (cm)",
+    dropPre: "Bild ablegen oder", dropBrowse: "durchsuchen", maskOriginalOpt: "Original erhalten", maskProtectOpt: "Kantenschutz", maskDelTitle: "Maske löschen",
+    drawHintActive: "Jetzt mit gedrückter Maus eine Form ins Bild zeichnen (%s).", dtfReady: "DTF-ready", dpiOk: "Akzeptabel", dpiBad: "Zu niedrig", dpiUnknown: "Unbekannt", noPhys: "Kein pHYs-Chunk", needDpi: "Benötigt DPI",
+    atDpi: "bei %s dpi", transpShort: "transp.", semiShort: "halbtransp.", opaqueShort: "opak", semiFull: "halbtransparent", pxWide: "px breit",
+    drawPolyHint: 'Punkte ins Bild klicken, dann „Maske schließen" (oder Enter). Esc bricht ab.', closeMask: 'Maske schließen', cancelMask: 'Abbrechen',
+    viewTransparent: 'Transparent', alphaAnalysis: 'Alpha-Analyse (Transparenz-Karte)',
+    secMinFeature: 'DTF Mindestgröße', minFeatureEnable: 'Mindestgröße-Schutz', tipMinFeature: 'Verhindert Punkte und Lücken, die zu klein für DTF sind.',
+    lblMinFeature: 'Min. Feature', minFeatureHint: 'Bei 300 DPI. 0,25 mm ≈ 3px, 0,34 mm ≈ 4px, 0,5 mm ≈ 6px.',
+    minGapsLabel: 'Lücken schließen', minDotsLabel: 'Punkte entfernen', exportHardHint: 'Export ist immer <b>hart</b> — keine halbtransparenten Pixel (DTF-sicher).',
+    grpSetup: 'Bild & Modus', grpRaster: 'Raster einstellen', grpCleanup: 'DTF-Aufbereitung', grpViewFile: 'Kontrolle', grpExport: 'Export',
+    recommendBtn: 'Auto-Empfehlung', analyzing: 'Design wird analysiert…', secPresets: 'Presets', recoNote: 'Empfohlen für <b>%shirt</b>: %mode, <b>%lpi LPI</b>, Deckung %cov%, Gamma %gam, Schwarzpunkt %bp%.',
+    warnTooFine: '⚠ ~%p% der Fläche ist zu fein für DTF und würde wegbrechen. Schutz ist AN.', warnTooFineOff: '⚠ ~%p% der Fläche ist zu fein für DTF — diese Punkte könnten wegbrechen. Schutz einschalten!', warnOk: '✓ Alle Punkte sind druckbar (≥ %px px).'
+  }, en: {
+    explainBtn: "What is halftone?", modalTitle: "What is halftone — and why?", modalIntro: "DTF printing can only print <b>fully opaque ink</b>. <b>Halftone</b> converts soft transitions into a dot screen.", fig1: "<b>1. The gradient</b><br>A soft glow or shadow.", fig2: "<b>2. Halftone screen</b><br>The gradient becomes dots.", fig3: "<b>3. On the shirt</b><br>Less ink, soft hand feel.", explainFoot: "💡 That is why this tool specifically rasterizes the semi-transparent/soft areas.", secMode: "What to rasterize?", modeTransTitle: "Semi-transparency only", modeTransDesc: "Solid areas stay 1:1.", modeFullTitle: "Whole design", modeFullDesc: "The entire design is rasterized.", secShirt: "Shirt color", tipShirt: "Sets the preview background.", clrBlack: "Black", clrWhite: "White", clrGray: "Gray", clrCustom: "Custom", shirtPick: "Pick actual shirt color", secScreen: "Screen (Halftone)", lblDotsize: "Dot size", tipFreq: "Frequency in lines per inch.", freqCoarse: "Coarse", freqStd: "Standard", freqFine: "Fine", lblAngle: "Angle", tipAngle: "Screen angle.", lblShape: "Shape", tipShape: "Dot shape.", levelsFull: "Tones (Levels)", levelsTrans: "Transition", lblCoverage: "Coverage / White point", tipCoverage: "Above this value everything prints fully solid.", lblGamma: "Midtones (Gamma)", tipGamma: "THE fine-tuning slider.", lblBlackPt: "Black point", tipBlackPt: "Kills tiny, muddy dots.", levelsHint: "💡 Can't separate light areas? Raise <b>Midtones (Gamma)</b>.", secEdge: "Edge protection", tipEdge: "Prevents the thin anti-alias fringe from being perforated.", edgeEnable: "Enable edge protection", lblSolidThr: "Solid threshold", tipSolidThr: "From this opacity a pixel counts as fully solid.", lblProtectPx: "Fringe guard", tipProtectPx: "Semi-transparent pixels closer to a solid pixel are hard-snapped.", lblMinWidth: "Min. raster width", tipMinWidth: "Only semi-transparent bands wider than this are rasterized.", edgeHint: "Fringe is snapped to <b>solid</b> or <b>transparent</b>.", secEdges: "Edges", tipEdges: "Anti-aliasing creates semi-transparent edge pixels.", hardAlphaLabel: "Hard alpha (sharpen globally)", lblThreshold: "Threshold", hardAlphaHint: "Whole image: pixels above the threshold → fully solid.", secMasks: "Masks (regions)", tipMasks: "Draw regions directly onto the image.", drawOriginal: "＋ Original region", drawProtect: "＋ Edge protection", maskHintDefault: "Click a button, then draw a shape on the image.", secView: "View", viewShirt: "On shirt", viewAlpha: "Transparency", viewOriginal: "Original", legTransp: "Transparent", legSemi: "Semi-transparent", legOpaque: "Opaque", secFile: "File info", statResLabel: "Resolution", statSizeLabel: "Size (cm)", statTranspLabel: "Transparency", pngInfoHint: "Load an image to see info", secExport: "Export", lblWidthCm: "Width (cm)", dropPre: "Drop image or", dropBrowse: "browse", maskOriginalOpt: "Keep original", maskProtectOpt: "Edge protection", maskDelTitle: "Delete mask", drawHintActive: "Now draw a shape with the mouse held down (%s).", dtfReady: "DTF-ready", dpiOk: "Acceptable", dpiBad: "Too low", dpiUnknown: "Unknown", noPhys: "No pHYs chunk", needDpi: "Needs DPI", atDpi: "at %s dpi", transpShort: "transp.", semiShort: "semi-transp.", opaqueShort: "opaque", semiFull: "semi-transparent", pxWide: "px wide", drawPolyHint: 'Click points on the image, then “Close mask” (or Enter). Esc cancels.', closeMask: 'Close mask', cancelMask: 'Cancel', viewTransparent: 'Transparent', alphaAnalysis: 'Alpha analysis', secMinFeature: 'DTF minimum size', minFeatureEnable: 'Min-size protection', tipMinFeature: 'Prevents dots and gaps too small for DTF.', lblMinFeature: 'Min. feature', minFeatureHint: 'At 300 DPI. 0.25 mm ≈ 3px, 0.34 mm ≈ 4px, 0.5 mm ≈ 6px.', minGapsLabel: 'Close gaps', minDotsLabel: 'Remove dots', exportHardHint: 'Export is always <b>hard</b>.', grpSetup: 'Image & mode', grpRaster: 'Screen settings', grpCleanup: 'DTF cleanup', grpViewFile: 'Check', grpExport: 'Export', recommendBtn: 'Auto-recommend', analyzing: 'Analyzing design…', secPresets: 'Presets', recoNote: 'Recommended for <b>%shirt</b>: %mode, <b>%lpi LPI</b>, coverage %cov%, gamma %gam, black point %bp%.', warnTooFine: '⚠ ~%p% of the area is too fine for DTF.', warnTooFineOff: '⚠ ~%p% of the area is too fine for DTF. Turn protection on!', warnOk: '✓ All dots are printable (≥ %px px).'
+  }};
+
+  let curLang = 'de';
+  function t(k){ return (LANG[curLang] && LANG[curLang][k]) || LANG.de[k] || k; }
+  function applyLang(lang){
+    curLang = lang; document.documentElement.lang = lang;
+    document.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = t(el.dataset.i18n); });
+    document.querySelectorAll('[data-i18n-html]').forEach(el => { el.innerHTML = t(el.dataset.i18nHtml); });
+    document.querySelectorAll('[data-i18n-tip]').forEach(el => { el.dataset.tip = t(el.dataset.i18nTip); });
+    $('levelsTitle').textContent = mode === 'full' ? t('levelsFull') : t('levelsTrans');
+    if (!drawMode) $('maskHint').textContent = t('maskHintDefault');
+    rebuildMaskList(); updateExportInfo();
+    if (lastFileArgs) updateFileInfo.apply(null, lastFileArgs);
+    document.querySelectorAll('#langSel button').forEach(b => b.classList.toggle('active', b.dataset.lang === lang));
+  }
+
+  let edgeMap = null, edgeKey = '';
+  function parsePngDpi(buffer) {
+    const bytes = new Uint8Array(buffer); const sig = [137,80,78,71,13,10,26,10];
+    for (let i=0;i<8;i++){ if(bytes[i]!==sig[i]) return null; }
+    let off=8;
+    while (off < bytes.length-12) {
+      const len=(bytes[off]<<24)|(bytes[off+1]<<16)|(bytes[off+2]<<8)|bytes[off+3];
+      const type=String.fromCharCode(bytes[off+4],bytes[off+5],bytes[off+6],bytes[off+7]);
+      if (type==='pHYs') { const ppuX=((bytes[off+8]<<24)>>>0)|(bytes[off+9]<<16)|(bytes[off+10]<<8)|bytes[off+11]; const unit=bytes[off+16]; if (unit===1) return { dpi: Math.round(ppuX*0.0254), known: true }; return { dpi: ppuX, known: false }; }
+      if (type==='IEND') break; off += 12+len;
+    }
+    return null;
+  }
+
+  const tipBox = $('tipBox');
+  document.addEventListener('mouseenter', e => {
+    const tEl = e.target.closest && e.target.closest('.tip'); if (!tEl) return;
+    tipBox.textContent = tEl.dataset.tip; tipBox.style.display = 'block';
+    const r = tEl.getBoundingClientRect(); let x = r.left, y = r.top - tipBox.offsetHeight - 6;
+    if (x + 230 > window.innerWidth) x = r.right - 230;
+    if (y < 4) y = r.bottom + 6;
+    x = Math.max(4, Math.min(x, window.innerWidth - 234));
+    tipBox.style.left = x + 'px'; tipBox.style.top = y + 'px';
+  }, true);
+  document.addEventListener('mouseleave', e => { if (e.target.closest && e.target.closest('.tip')) tipBox.style.display = 'none'; }, true);
+
+  $('browseLink').addEventListener('click', () => fileInput.click());
+  dropZone.addEventListener('click', e => { if (e.target === dropZone || e.target.closest('.drop-icon') || e.target.closest('.drop-text')) fileInput.click(); });
+  fileInput.addEventListener('change', e => { if (e.target.files[0]) loadImage(e.target.files[0]); });
+  ['dragenter','dragover'].forEach(ev => canvasArea.addEventListener(ev, e => { e.preventDefault(); dropZone.classList.add('dragover'); }));
+  ['dragleave','drop'].forEach(ev => canvasArea.addEventListener(ev, e => { e.preventDefault(); dropZone.classList.remove('dragover'); }));
+  canvasArea.addEventListener('drop', e => { if (e.dataTransfer.files[0]) loadImage(e.dataTransfer.files[0]); });
+
+  function loadImage(file) {
+    const reader = new FileReader();
+    reader.onerror = () => alert('Fehler beim Lesen der Datei.');
+    reader.onload = ev => {
+      try {
+        const buffer = ev.target.result;
+        const dpiInfo = (file.type === 'image/png') ? parsePngDpi(buffer) : null;
+        const blob = new Blob([buffer], { type: file.type });
+        decodeAndLoad(blob, file, dpiInfo);
+      } catch (err) { console.error(err); alert('Bild konnte nicht geladen werden: ' + err.message); }
+    };
+    reader.readAsArrayBuffer(file);
+  }
+
+  function decodeAndLoad(blob, file, dpiInfo) {
+    const img = new Image();
+    img.onerror = () => alert('Bildformat nicht unterstützt oder Datei beschädigt.');
+    img.onload = () => {
+      try {
+        srcW = img.width; srcH = img.height; sourceImg = img;
+        edgeMap = null; edgeKey = ''; masks = []; maskField = null; rebuildMaskList();
+        const tmp = document.createElement('canvas'); tmp.width = srcW; tmp.height = srcH;
+        const tc = tmp.getContext('2d'); tc.drawImage(img, 0, 0);
+        srcRGBA = tc.getImageData(0, 0, srcW, srcH).data;
+        outCanvas.width = srcW; outCanvas.height = srcH;
+        viewCanvas.width = srcW; viewCanvas.height = srcH;
+        let semi = 0, transp = 0;
+        for (let i = 3; i < srcRGBA.length; i += 4) { const a = srcRGBA[i]; if (a === 0) transp++; else if (a < 255) semi++; }
+        const total = srcW * srcH;
+        updateFileInfo(file, dpiInfo, semi, transp, total);
+        dropZone.classList.add('hidden'); $('closeBtn').style.display = 'block';
+        $('zoomBar').style.display = 'flex'; $('infoBar').style.display = 'flex';
+        $('infoSize').textContent = `${srcW}×${srcH}`;
+        $('infoAlpha').textContent = `${(semi/total*100).toFixed(1)}% ${t('semiFull')}`;
+        URL.revokeObjectURL(img.src);
+        zoomToFit(); history.stack = []; history.index = -1; pushHistory(); render();
+        analyzeAndRecommend();
+      } catch (err) { console.error(err); alert('Fehler bei der Bildverarbeitung: ' + err.message); }
+    };
+    img.src = URL.createObjectURL(blob);
+  }
+
+  let lastFileArgs = null;
+  function updateFileInfo(file, dpiInfo, semi, transp, total) {
+    lastFileArgs = [file, dpiInfo, semi, transp, total];
+    const dpi = dpiInfo && dpiInfo.known ? dpiInfo.dpi : null;
+    $('statRes').textContent = `${srcW} × ${srcH} px`;
+    $('statFileSize').textContent = `${(file.size/1024).toFixed(0)} KB` + (file.size>1048576 ? ` (${(file.size/1048576).toFixed(1)} MB)` : '');
+    const dpiEl = $('statDpi');
+    if (dpi) { const cls = dpi>=300 ? 'dpi-ok' : dpi>=150 ? 'dpi-warn' : 'dpi-bad'; dpiEl.innerHTML = `<span class="${cls}">${dpi} dpi</span>`; $('statDpiSub').textContent = dpi>=300 ? t('dtfReady') : dpi>=150 ? t('dpiOk') : t('dpiBad'); }
+    else { dpiEl.innerHTML = '<span class="dpi-warn">'+t('dpiUnknown')+'</span>'; $('statDpiSub').textContent = t('noPhys'); }
+    const wCm = dpi ? (srcW/dpi)*2.54 : null, hCm = dpi ? (srcH/dpi)*2.54 : null;
+    $('statCm').textContent = wCm ? `${wCm.toFixed(1)} × ${hCm.toFixed(1)}` : '–';
+    $('statCmSub').textContent = wCm ? t('atDpi').replace('%s', dpi) : t('needDpi');
+    const tPct = (transp/total*100).toFixed(1), sPct = (semi/total*100).toFixed(1);
+    $('statAlpha').textContent = `${tPct}% ${t('transpShort')}`;
+    $('statAlphaSub').textContent = parseFloat(sPct)>0 ? `+ ${sPct}% ${t('semiShort')}` : `${(100-parseFloat(tPct)).toFixed(1)}% ${t('opaqueShort')}`;
+    $('pngInfo').classList.add('visible'); $('pngInfoHint').style.display = 'none';
+  }
+
+  $('closeBtn').addEventListener('click', () => {
+    srcRGBA = null; sourceImg = null; srcW = srcH = 0;
+    masks = []; maskField = null; edgeMap = null; if (drawMode) exitDraw(); rebuildMaskList();
+    $('closeBtn').style.display = 'none'; $('zoomBar').style.display = 'none'; $('infoBar').style.display = 'none';
+    dropZone.classList.remove('hidden'); fileInput.value = '';
+    vCtx.clearRect(0, 0, viewCanvas.width, viewCanvas.height);
+    loupe.style.display = 'none';
+  });
+
+  document.querySelectorAll('.mode-card').forEach(card => {
+    card.addEventListener('click', function() {
+      document.querySelectorAll('.mode-card').forEach(c => c.classList.remove('active'));
+      this.classList.add('active'); mode = this.dataset.mode;
+      $('levelsTitle').textContent = mode === 'full' ? t('levelsFull') : t('levelsTrans');
+      render(); pushHistory();
+    });
+    card.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); card.click(); } });
+  });
+
+  document.querySelectorAll('#shirtColor button').forEach(btn => {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('#shirtColor button').forEach(b => b.classList.remove('active'));
+      this.classList.add('active');
+      if (this.dataset.color === 'custom') { $('customColorRow').style.display = 'flex'; shirtColor = $('customColor').value; }
+      else { $('customColorRow').style.display = 'none'; shirtColor = this.dataset.color; }
+      updateShirtPreview(); if (srcRGBA) analyzeAndRecommend(); else render(); pushHistory();
+    });
+  });
+  $('customColor').addEventListener('input', function() { shirtColor = this.value; updateShirtPreview(); render(); });
+  $('customColor').addEventListener('change', function() { shirtColor = this.value; updateShirtPreview(); if (srcRGBA) analyzeAndRecommend(); pushHistory(); });
+
+  $('freq').addEventListener('input', function() {
+    $('freqVal').textContent = this.value + ' LPI';
+    document.querySelectorAll('#freqPreset button').forEach(b => b.classList.toggle('active', b.dataset.freq === this.value));
+    render();
+  });
+  $('freq').addEventListener('change', pushHistory);
+  document.querySelectorAll('#freqPreset button').forEach(btn => {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('#freqPreset button').forEach(b => b.classList.remove('active'));
+      this.classList.add('active'); $('freq').value = this.dataset.freq; $('freqVal').textContent = this.dataset.freq + ' LPI';
+      render(); pushHistory();
+    });
+  });
+  $('angle').addEventListener('input', function() { $('angleVal').textContent = this.value + '°'; render(); });
+  $('angle').addEventListener('change', pushHistory);
+  document.querySelectorAll('#shape button').forEach(btn => {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('#shape button').forEach(b => b.classList.remove('active'));
+      this.classList.add('active'); render(); pushHistory();
+    });
+  });
+  $('coverage').addEventListener('input', function() { $('coverageVal').textContent = this.value + '%'; render(); });
+  $('coverage').addEventListener('change', pushHistory);
+  $('gamma').addEventListener('input', function() { $('gammaVal').textContent = parseFloat(this.value).toFixed(2); render(); });
+  $('gamma').addEventListener('change', pushHistory);
+  $('blackPt').addEventListener('input', function() { $('blackPtVal').textContent = this.value + '%'; render(); });
+  $('blackPt').addEventListener('change', pushHistory);
+  $('hardAlpha').addEventListener('change', function() { $('hardAlphaRow').style.display = this.checked ? 'block' : 'none'; edgeMap = null; render(); pushHistory(); });
+  $('threshold').addEventListener('input', function() { $('thresholdVal').textContent = this.value + '%'; edgeMap = null; render(); });
+  $('threshold').addEventListener('change', pushHistory);
+  $('edgeProtect').addEventListener('change', function() { $('edgeControls').style.display = this.checked ? 'block' : 'none'; edgeMap = null; render(); pushHistory(); });
+  $('solidThr').addEventListener('input', function() { $('solidThrVal').textContent = this.value + '%'; edgeMap = null; render(); });
+  $('solidThr').addEventListener('change', pushHistory);
+  $('protectPx').addEventListener('input', function() { $('protectPxVal').textContent = this.value + 'px'; edgeMap = null; render(); });
+  $('protectPx').addEventListener('change', pushHistory);
+  $('minWidth').addEventListener('input', function() { $('minWidthVal').textContent = this.value + 'px'; edgeMap = null; render(); });
+  $('minWidth').addEventListener('change', pushHistory);
+
+  function setView(v) {
+    currentView = v;
+    document.querySelectorAll('#viewMode button').forEach(b => b.classList.toggle('active', b.dataset.view === v));
+    $('alphaLegend').style.display = (v === 'alpha') ? 'flex' : 'none';
+    updateShirtPreview(); render(); pushHistory();
+  }
+  document.querySelectorAll('[data-view]').forEach(b => b.addEventListener('click', () => setView(b.dataset.view)));
+
+  $('minFeature').addEventListener('change', function() { $('minFeatureControls').style.display = this.checked ? 'block' : 'none'; render(); pushHistory(); });
+  $('minPx').addEventListener('input', function() { const px = +this.value; $('minPxVal').textContent = px + 'px · ' + (px/11.81).toFixed(2) + 'mm'; render(); });
+  $('minPx').addEventListener('change', pushHistory);
+  $('closeGaps').addEventListener('change', () => { render(); pushHistory(); });
+  $('removeDots').addEventListener('change', () => { render(); pushHistory(); });
+
+  function updateMinWarn(atRisk, dotted, on) {
+    const el = $('minWarn'); const pct = dotted > 0 ? (atRisk / dotted * 100) : 0;
+    el.className = 'min-warn';
+    if (pct < 1) { el.classList.add('ok'); el.innerHTML = t('warnOk').replace('%px', getNum('minPx')); }
+    else if (on) { el.classList.add('warn'); el.innerHTML = t('warnTooFine').replace('%p', pct.toFixed(0)); }
+    else { el.classList.add('bad'); el.innerHTML = t('warnTooFineOff').replace('%p', pct.toFixed(0)); }
+  }
+
+  function analyzeAndRecommend() {
+    if (!srcRGBA) { render(); return; }
+    $('analyzeOverlay').classList.add('visible');
+    setTimeout(() => { recommend(); $('analyzeOverlay').classList.remove('visible'); pushHistory(); }, 850);
+  }
+  function setSlider(id, val) { const el = $(id); el.value = val; const ev = new Event('input'); el.dispatchEvent(ev); }
+  function recommend() {
+    if (!srcRGBA) return;
+    const N = srcW * srcH, s = srcRGBA; const [sr, sg, sb] = shirtRGB();
+    const neutral = Math.abs(sr-sg) < 14 && Math.abs(sg-sb) < 14 && Math.abs(sr-sb) < 14;
+    const shirtLum = (0.299*sr + 0.587*sg + 0.114*sb) / 255, shirtLumNorm = Math.max(shirtLum, 1-shirtLum) || 1;
+    const step = Math.max(1, Math.floor(N / 150000));
+    let transp = 0, semi = 0, opaque = 0, sampled = 0;
+    for (let i = 0; i < N; i += step) { const a = s[i*4+3]; sampled++; if (a === 0) transp++; else if (a < 255) semi++; else opaque++; }
+    const transpPct = transp/sampled, semiPct = semi/sampled;
+    const mode2 = (transpPct < 0.03) ? 'full' : 'transparency';
+    const vals = [];
+    for (let i = 0; i < N; i += step) {
+      const a = s[i*4+3]; if (a === 0) continue; let c;
+      if (mode2 === 'transparency') { if (a >= 255) continue; c = a/255; }
+      else { if (neutral) { const lum = (0.299*s[i*4]+0.587*s[i*4+1]+0.114*s[i*4+2])/255; c = Math.abs(lum-shirtLum)/shirtLumNorm; } else { const dr=s[i*4]-sr, dg=s[i*4+1]-sg, db=s[i*4+2]-sb; c = Math.sqrt(dr*dr+dg*dg+db*db)/MAXDIST; } }
+      vals.push(c);
+    }
+    vals.sort((a,b) => a-b);
+    const q = p => vals.length ? vals[Math.min(vals.length-1, Math.floor(p*vals.length))] : 0.5;
+    const median = q(0.5), p80 = q(0.8);
+    let lpi = mode2 === 'transparency' ? 32 : 36;
+    if (semiPct > 0.20) lpi -= 4; else if (semiPct > 0.08) lpi -= 2;
+    if (median < 0.30) lpi -= 2;
+    lpi = Math.max(24, Math.min(42, Math.round(lpi)));
+    const minPx = getNum('minPx'); const minControl = (minPx/2) / (0.70710678 * (300/lpi));
+    const blackPt = Math.max(3, Math.min(22, Math.round(minControl * 100)));
+    const coverage = Math.max(45, Math.min(82, Math.round(p80 * 100)));
+    const gamma = median < 0.32 ? 1.5 : (median > 0.62 ? 0.85 : 1.0);
+    document.querySelectorAll('.mode-card').forEach(c => c.classList.toggle('active', c.dataset.mode === mode2));
+    mode = mode2; $('levelsTitle').textContent = mode === 'full' ? t('levelsFull') : t('levelsTrans');
+    setSlider('freq', lpi); document.querySelectorAll('#freqPreset button').forEach(b => b.classList.toggle('active', b.dataset.freq === String(lpi)));
+    setSlider('coverage', coverage); setSlider('gamma', gamma); setSlider('blackPt', blackPt);
+    if (!$('minFeature').checked) { $('minFeature').checked = true; $('minFeatureControls').style.display = 'block'; }
+    render();
+    const shirtName = neutral ? (shirtLum > 0.6 ? t('clrWhite') : shirtLum < 0.25 ? t('clrBlack') : t('clrGray')) : t('clrCustom');
+    const modeName = mode2 === 'full' ? t('modeFullTitle') : t('modeTransTitle');
+    $('recoNote').style.display = 'block';
+    $('recoNote').innerHTML = t('recoNote').replace('%shirt', shirtName).replace('%mode', modeName)
+      .replace('%lpi', lpi).replace('%cov', coverage).replace('%gam', gamma.toFixed(2)).replace('%bp', blackPt);
+  }
+  $('recommendBtn').addEventListener('click', analyzeAndRecommend);
+
+  $('toggleMaskView').addEventListener('click', function() {
+    showMasks = !showMasks; this.classList.toggle('arming', !showMasks);
+    $('maskEyeIcon').innerHTML = showMasks
+      ? '<path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/>'
+      : '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>';
+    composeView();
+  });
+
+  $('themeToggle').addEventListener('click', () => document.body.classList.toggle('light-mode'));
+  document.querySelectorAll('#langSel button').forEach(b => b.addEventListener('click', () => applyLang(b.dataset.lang)));
+
+  $('explainBtn').addEventListener('click', () => $('explainModal').classList.add('visible'));
+  $('explainClose').addEventListener('click', () => $('explainModal').classList.remove('visible'));
+  $('explainModal').addEventListener('click', e => { if (e.target === $('explainModal')) $('explainModal').classList.remove('visible'); });
+
+  document.addEventListener('keydown', e => {
+    const ctrl = e.ctrlKey || e.metaKey;
+    if (ctrl && e.key.toLowerCase() === 'z' && !e.shiftKey) { e.preventDefault(); undo(); }
+    else if (ctrl && (e.key.toLowerCase() === 'y' || (e.shiftKey && e.key.toLowerCase() === 'z'))) { e.preventDefault(); redo(); }
+    else if (e.key === 'Escape') { if (drawMode) cancelDraw(); else $('explainModal').classList.remove('visible'); }
+    else if (e.key === 'Enter' && drawMode) finalizeMask();
+    else if (e.key === '[') { const el = $('freq'); el.value = Math.max(+el.min, +el.value - 1); el.dispatchEvent(new Event('input')); }
+    else if (e.key === ']') { const el = $('freq'); el.value = Math.min(+el.max, +el.value + 1); el.dispatchEvent(new Event('input')); }
+    else if (e.key === ' ') { if (drawMode) { e.preventDefault(); cancelDraw(); } }
+  });
+
+  function updateShirtPreview() {
+    if (currentView === 'shirt') { checker.classList.remove('visible'); canvasArea.style.background = shirtColor; }
+    else if (currentView === 'original') { checker.classList.remove('visible'); canvasArea.style.background = '#808080'; }
+    else { checker.classList.add('visible'); canvasArea.style.background = ''; }
+  }
+  const getActiveShape = () => document.querySelector('#shape button.active').dataset.shape;
+
+  function applyLevels(c) {
+    const blackPt = getNum('blackPt') / 100; const whitePt = getNum('coverage') / 100; const gamma = getNum('gamma');
+    if (c <= blackPt) return 0; if (c >= whitePt) return 1;
+    c = (c - blackPt) / (whitePt - blackPt); return Math.pow(c, 1 / gamma);
+  }
+  const MAXDIST = Math.sqrt(3 * 255 * 255);
+  function shirtRGB() { return [parseInt(shirtColor.slice(1,3),16), parseInt(shirtColor.slice(3,5),16), parseInt(shirtColor.slice(5,7),16)]; }
+
+  function chamferDT(seed, W, H) {
+    const INF = 1e9, a = 1, b = 1.41421356; const d = new Float32Array(W * H);
+    for (let i = 0; i < d.length; i++) d[i] = seed[i] ? 0 : INF;
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+      const i = y*W + x; let v = d[i];
+      if (x>0) v = Math.min(v, d[i-1]+a); if (y>0) v = Math.min(v, d[i-W]+a);
+      if (x>0 && y>0) v = Math.min(v, d[i-W-1]+b); if (x<W-1 && y>0) v = Math.min(v, d[i-W+1]+b);
+      d[i] = v;
+    }
+    for (let y = H-1; y >= 0; y--) for (let x = W-1; x >= 0; x--) {
+      const i = y*W + x; let v = d[i];
+      if (x<W-1) v = Math.min(v, d[i+1]+a); if (y<H-1) v = Math.min(v, d[i+W]+a);
+      if (x<W-1 && y<H-1) v = Math.min(v, d[i+W+1]+b); if (x>0 && y<H-1) v = Math.min(v, d[i+W-1]+b);
+      d[i] = v;
+    }
+    return d;
+  }
+
+  function buildEdgeMap() {
+    const solidThr = getNum('solidThr') / 100 * 255; const protectPx = getNum('protectPx'); const minWidth = getNum('minWidth');
+    const N = srcW * srcH, s = srcRGBA; const isSolid = new Uint8Array(N), isTransp = new Uint8Array(N);
+    for (let i = 0; i < N; i++) { const a = s[i*4+3]; if (a >= solidThr) isSolid[i] = 1; else if (a <= 2) isTransp[i] = 1; }
+    const dSolid = chamferDT(isSolid, srcW, srcH); const dTransp = chamferDT(isTransp, srcW, srcH);
+    const map = new Uint8Array(N);
+    for (let i = 0; i < N; i++) {
+      const a = s[i*4+3];
+      if (a >= solidThr || a <= 2) continue;
+      if (dSolid[i] <= protectPx || (dSolid[i] + dTransp[i]) <= minWidth) map[i] = (a >= 128) ? 1 : 2;
+    }
+    return map;
+  }
+  function getEdgeMap() { const key = `${getNum('solidThr')}|${getNum('protectPx')}|${getNum('minWidth')}`; if (!edgeMap || edgeKey !== key) { edgeMap = buildEdgeMap(); edgeKey = key; } return edgeMap; }
+
+  function fillPoly(ctx, pts, color) {
+    if (pts.length < 3) return; ctx.fillStyle = color; ctx.beginPath(); ctx.moveTo(pts[0][0], pts[0][1]);
+    for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i][0], pts[i][1]); ctx.closePath(); ctx.fill();
+  }
+  function buildMaskField() {
+    const mc = document.createElement('canvas'); mc.width = srcW; mc.height = srcH; const m = mc.getContext('2d');
+    for (const mk of masks) if (mk.type === 'protect') fillPoly(m, mk.pts, '#00ff00');
+    for (const mk of masks) if (mk.type === 'original') fillPoly(m, mk.pts, '#ff0000');
+    const d = m.getImageData(0, 0, srcW, srcH).data; const f = new Uint8Array(srcW * srcH);
+    for (let i = 0; i < f.length; i++) { const r = d[i*4], g = d[i*4+1]; if (r > 128) f[i] = 1; else if (g > 128) f[i] = 2; }
+    return f;
+  }
+  function getMaskField() { if (!maskField) maskField = buildMaskField(); return maskField; }
+
+  function morphDilate(mask, w, h, r) { const d = chamferDT(mask, w, h); const out = new Uint8Array(w*h); for (let i=0;i<out.length;i++) out[i] = d[i] <= r ? 1 : 0; return out; }
+  function morphErode(mask, w, h, r) { const inv = new Uint8Array(w*h); for (let i=0;i<inv.length;i++) inv[i] = mask[i] ? 0 : 1; const d = chamferDT(inv, w, h); const out = new Uint8Array(w*h); for (let i=0;i<out.length;i++) out[i] = d[i] > r ? 1 : 0; return out; }
+  function applyMinFeature(o, w, h) {
+    const r = Math.max(1, Math.round(getNum('minPx') / 2)); const N = w * h; let mask = new Uint8Array(N);
+    for (let i = 0; i < N; i++) mask[i] = o[i*4+3] >= 128 ? 1 : 0;
+    if (getChecked('closeGaps')) mask = morphErode(morphDilate(mask, w, h, r), w, h, r);
+    if (getChecked('removeDots')) mask = morphDilate(morphErode(mask, w, h, r), w, h, r);
+    for (let i = 0; i < N; i++) {
+      const a = o[i*4+3];
+      if (mask[i] && a < 128) { o[i*4] = srcRGBA[i*4]; o[i*4+1] = srcRGBA[i*4+1]; o[i*4+2] = srcRGBA[i*4+2]; o[i*4+3] = 255; }
+      else if (!mask[i] && a >= 128) { o[i*4+3] = 0; }
+    }
+  }
+
+  function rebuildMaskList() {
+    const c = $('maskList'); c.innerHTML = '';
+    masks.forEach((mk, i) => {
+      const row = document.createElement('div'); row.className = 'mask-row';
+      const col = mk.type === 'original' ? '#4a90ff' : '#54f595';
+      row.innerHTML = `<span class="mask-swatch" style="background:${col}"></span>` +
+        `<select class="mask-type" data-i="${i}">` +
+          `<option value="original"${mk.type==='original'?' selected':''}>${t('maskOriginalOpt')}</option>` +
+          `<option value="protect"${mk.type==='protect'?' selected':''}>${t('maskProtectOpt')}</option>` +
+        `</select>` + `<button class="mask-del" data-i="${i}" title="${t('maskDelTitle')}">✕</button>`;
+      c.appendChild(row);
+    });
+    c.querySelectorAll('.mask-type').forEach(sel => sel.addEventListener('change', function() {
+      masks[+this.dataset.i].type = this.value; maskField = null; rebuildMaskList(); render(); pushHistory();
+    }));
+    c.querySelectorAll('.mask-del').forEach(b => b.addEventListener('click', function() {
+      masks.splice(+this.dataset.i, 1); maskField = null; rebuildMaskList(); render(); pushHistory();
+    }));
+  }
+
+  function screenToImage(e) {
+    const r = canvasArea.getBoundingClientRect();
+    return [ (e.clientX - r.left - panX) / zoom, (e.clientY - r.top - panY) / zoom ];
+  }
+  function enterDraw(type) {
+    if (!srcRGBA) return;
+    drawMode = true; drawType = type; curPts = []; hoverPt = null;
+    canvasArea.style.cursor = 'crosshair';
+    $('drawOriginal').classList.toggle('arming', type === 'original');
+    $('drawProtect').classList.toggle('arming', type === 'protect');
+    $('drawActions').style.display = 'flex'; $('maskHint').textContent = t('drawPolyHint');
+    composeView();
+  }
+  function exitDraw() {
+    drawMode = false; curPts = []; hoverPt = null; canvasArea.style.cursor = '';
+    $('drawOriginal').classList.remove('arming'); $('drawProtect').classList.remove('arming');
+    $('drawActions').style.display = 'none'; $('maskHint').textContent = t('maskHintDefault');
+  }
+  function finalizeMask() {
+    if (!drawMode) return;
+    if (curPts.length >= 3) { masks.push({ type: drawType, pts: curPts.slice() }); maskField = null; rebuildMaskList(); exitDraw(); render(); pushHistory(); }
+    else { exitDraw(); composeView(); }
+  }
+  function cancelDraw() { exitDraw(); composeView(); }
+
+  const workerSrc = `
+    let srcW, srcH, srcBuf;
+    self.onmessage = function(e) {
+      const d = e.data;
+      if (d.type === 'setSrc') { srcW = d.w; srcH = d.h; srcBuf = d.buf; return; }
+      if (d.type === 'render') {
+        try {
+          const { freq, angleRad, shape, hardAlpha, thr, sr, sg, sb, mode, mFieldBuf, eMapBuf, edgeGlobal, hasMaskProtect, minControl, minFeatureOn } = d;
+          const cellPx = 300 / freq; const cosA = Math.cos(angleRad), sinA = Math.sin(angleRad);
+          const invCellPx = 1 / cellPx; const s = new Uint8ClampedArray(srcBuf);
+          const shirtNeutral = Math.abs(sr-sg) < 14 && Math.abs(sg-sb) < 14 && Math.abs(sr-sb) < 14;
+          const shirtLum = (0.299*sr + 0.587*sg + 0.114*sb) / 255;
+          const shirtLumNorm = Math.max(shirtLum, 1-shirtLum) || 1;
+          const mField = mFieldBuf ? new Uint8Array(mFieldBuf) : null;
+          const eMap = eMapBuf ? new Uint8Array(eMapBuf) : null;
+          const out = new Uint8ClampedArray(srcW*srcH*4);
+          const HALF_DIAG = 0.70710678;
+          const blackPt = d.blackPt, whitePt = d.whitePt, gamma = d.gamma;
+          function applyLevels(c) {
+            if (c <= blackPt) return 0; if (c >= whitePt) return 1;
+            c = (c - blackPt) / (whitePt - blackPt); return Math.pow(c, 1 / gamma);
+          }
+          const MAXDIST = Math.sqrt(3 * 255 * 255);
+          let atRiskArea = 0, dottedArea = 0;
+          for (let y = 0; y < srcH; y++) {
+            const yCos = y * cosA, ySin = y * sinA;
+            for (let x = 0; x < srcW; x++) {
+              const pi = y * srcW + x; const idx = pi * 4;
+              if (mField && mField[pi] === 1) { out[idx]=s[idx]; out[idx+1]=s[idx+1]; out[idx+2]=s[idx+2]; out[idx+3]=s[idx+3]; continue; }
+              let a = s[idx+3];
+              if (hardAlpha) a = a >= thr ? 255 : 0;
+              if (eMap && (edgeGlobal || (mField && mField[pi] === 2))) {
+                const dec = eMap[pi];
+                if (dec === 2) { out[idx+3] = 0; continue; }
+                if (dec === 1) { out[idx]=s[idx]; out[idx+1]=s[idx+1]; out[idx+2]=s[idx+2]; out[idx+3]=255; continue; }
+              }
+              if (a === 0) { out[idx+3] = 0; continue; }
+              const r0 = s[idx], g0 = s[idx+1], b0 = s[idx+2];
+              let control, keepSolid = false;
+              if (mode === 'transparency') {
+                if (a >= 255) keepSolid = true; else control = a / 255;
+              } else {
+                if (shirtNeutral) { const lum = (0.299*r0 + 0.587*g0 + 0.114*b0) / 255; control = Math.abs(lum - shirtLum) / shirtLumNorm; }
+                else { const dr = r0 - sr, dg = g0 - sg, db = b0 - sb; control = Math.sqrt(dr*dr + dg*dg + db*db) / MAXDIST; }
+                control = applyLevels(control);
+              }
+              if (keepSolid) { out[idx]=r0; out[idx+1]=g0; out[idx+2]=b0; out[idx+3]=255; continue; }
+              if (mode === 'transparency') control = applyLevels(control);
+              if (control <= 0) { out[idx+3] = 0; continue; }
+              if (control >= 1) { out[idx]=r0; out[idx+1]=g0; out[idx+2]=b0; out[idx+3]=255; continue; }
+              if (control < minControl) { dottedArea++; atRiskArea++; if (minFeatureOn) { out[idx+3] = 0; continue; } } else dottedArea++;
+              const xr = x * cosA - ySin; const yr = x * sinA + yCos;
+              let u = xr * invCellPx; u = u - Math.floor(u) - 0.5;
+              let v = yr * invCellPx; v = v - Math.floor(v) - 0.5;
+              let rNorm;
+              if (shape === 'round') rNorm = Math.sqrt(u*u + v*v) / HALF_DIAG;
+              else if (shape === 'diamond') rNorm = (Math.abs(u) + Math.abs(v)) / 0.5;
+              else if (shape === 'line') rNorm = Math.abs(v) / 0.5;
+              else rNorm = Math.max(Math.abs(u), Math.abs(v)) / 0.5;
+              if (control >= rNorm) { out[idx]=r0; out[idx+1]=g0; out[idx+2]=b0; out[idx+3]=255; } else out[idx+3] = 0;
+            }
+          }
+          self.postMessage({ type: 'done', buf: out.buffer, atRisk: atRiskArea, dotted: dottedArea }, [out.buffer]);
+        } catch (err) { self.postMessage({ type: 'error', msg: String(err) }); }
+      }
+    };
+  `;
+  function initWorker() {
+    if (worker) return;
+    try {
+      const blob = new Blob([workerSrc], { type: 'application/javascript' });
+      worker = new Worker(URL.createObjectURL(blob));
+      worker.onmessage = function(e) {
+        workerBusy = false;
+        if (e.data.type === 'done') {
+          const out = new Uint8ClampedArray(e.data.buf);
+          oCtx.putImageData(new ImageData(out, srcW, srcH), 0, 0);
+          updateMinWarn(e.data.atRisk, e.data.dotted, getChecked('minFeature'));
+          composeView();
+        } else if (e.data.type === 'error') { console.error('Worker error:', e.data.msg); renderFallback(); }
+      };
+    } catch (err) { console.warn('Worker init failed, using fallback:', err); worker = null; }
+  }
+  function postToWorker() {
+    if (!worker || !srcRGBA) return false;
+    workerBusy = true;
+    const copy = new Uint8ClampedArray(srcRGBA);
+    worker.postMessage({ type: 'setSrc', w: srcW, h: srcH, buf: copy.buffer }, [copy.buffer]);
+    const [sr, sg, sb] = shirtRGB();
+    const freq = getNum('freq'); const cellPx = 300/freq; const minControl = Math.min(0.95, (getNum('minPx')/2) / (0.70710678*cellPx));
+    const mField = masks.length ? getMaskField() : null;
+    const hasMaskProtect = masks.some(m => m.type === 'protect');
+    const edgeGlobal = getChecked('edgeProtect') && !getChecked('hardAlpha');
+    const eMap = (!getChecked('hardAlpha') && (getChecked('edgeProtect') || hasMaskProtect)) ? getEdgeMap() : null;
+    worker.postMessage({
+      type: 'render', freq, angleRad: getNum('angle')*Math.PI/180, shape: getActiveShape(),
+      hardAlpha: getChecked('hardAlpha'), thr: getNum('threshold')/100*255,
+      sr, sg, sb, mode, mFieldBuf: mField ? mField.buffer.slice() : null,
+      eMapBuf: eMap ? eMap.buffer.slice() : null, edgeGlobal, hasMaskProtect,
+      minControl, minFeatureOn: getChecked('minFeature'),
+      blackPt: getNum('blackPt')/100, whitePt: getNum('coverage')/100, gamma: getNum('gamma')
+    });
+    return true;
+  }
+  function scheduleRender() { if (rafId) cancelAnimationFrame(rafId); rafId = requestAnimationFrame(render); }
+
+  function renderFallback() {
+    const freq = getNum('freq'); const cellPx = 300 / freq;
+    const angleRad = getNum('angle') * Math.PI / 180; const cosA = Math.cos(angleRad), sinA = Math.sin(angleRad);
+    const shape = getActiveShape(); const invCellPx = 1 / cellPx;
+    const hardAlpha = getChecked('hardAlpha'); const thr = getNum('threshold') / 100 * 255;
+    const [sr, sg, sb] = shirtRGB();
+    const shirtNeutral = Math.abs(sr-sg) < 14 && Math.abs(sg-sb) < 14 && Math.abs(sr-sb) < 14;
+    const shirtLum = (0.299*sr + 0.587*sg + 0.114*sb) / 255; const shirtLumNorm = Math.max(shirtLum, 1 - shirtLum) || 1;
+    const mField = masks.length ? getMaskField() : null;
+    const hasProtectMask = masks.some(m => m.type === 'protect');
+    const edgeGlobal = getChecked('edgeProtect') && !hardAlpha;
+    const eMap = (!hardAlpha && (getChecked('edgeProtect') || hasProtectMask)) ? getEdgeMap() : null;
+    const out = oCtx.createImageData(srcW, srcH); const o = out.data; const s = srcRGBA;
+    const minFeatureOn = getChecked('minFeature'); const minControl = Math.min(0.95, (getNum('minPx') / 2) / (0.70710678 * cellPx));
+    let atRiskArea = 0, dottedArea = 0; const HALF_DIAG = 0.70710678;
+    for (let y = 0; y < srcH; y++) {
+      const yCos = y * cosA, ySin = y * sinA;
+      for (let x = 0; x < srcW; x++) {
+        const pi = y * srcW + x; const idx = pi * 4;
+        if (mField && mField[pi] === 1) { o[idx] = s[idx]; o[idx+1] = s[idx+1]; o[idx+2] = s[idx+2]; o[idx+3] = s[idx+3]; continue; }
+        let a = s[idx + 3]; if (hardAlpha) a = a >= thr ? 255 : 0;
+        if (eMap && (edgeGlobal || (mField && mField[pi] === 2))) {
+          const dec = eMap[pi];
+          if (dec === 2) { o[idx+3] = 0; continue; }
+          if (dec === 1) { o[idx] = s[idx]; o[idx+1] = s[idx+1]; o[idx+2] = s[idx+2]; o[idx+3] = 255; continue; }
+        }
+        if (a === 0) { o[idx+3] = 0; continue; }
+        const r0 = s[idx], g0 = s[idx+1], b0 = s[idx+2];
+        let control, keepSolid = false;
+        if (mode === 'transparency') { if (a >= 255) keepSolid = true; else control = a / 255; }
+        else {
+          if (shirtNeutral) { const lum = (0.299*r0 + 0.587*g0 + 0.114*b0) / 255; control = Math.abs(lum - shirtLum) / shirtLumNorm; }
+          else { const dr = r0 - sr, dg = g0 - sg, db = b0 - sb; control = Math.sqrt(dr*dr + dg*dg + db*db) / MAXDIST; }
+          control = applyLevels(control);
+        }
+        if (keepSolid) { o[idx] = r0; o[idx+1] = g0; o[idx+2] = b0; o[idx+3] = 255; continue; }
+        if (mode === 'transparency') control = applyLevels(control);
+        if (control <= 0) { o[idx+3] = 0; continue; }
+        if (control >= 1) { o[idx] = r0; o[idx+1] = g0; o[idx+2] = b0; o[idx+3] = 255; continue; }
+        if (control < minControl) { dottedArea++; atRiskArea++; if (minFeatureOn) { o[idx+3] = 0; continue; } } else dottedArea++;
+        const xr = x * cosA - ySin; const yr = x * sinA + yCos;
+        let u = xr * invCellPx; u = u - Math.floor(u) - 0.5;
+        let v = yr * invCellPx; v = v - Math.floor(v) - 0.5;
+        let rNorm;
+        if (shape === 'round') rNorm = Math.sqrt(u*u + v*v) / HALF_DIAG;
+        else if (shape === 'diamond') rNorm = (Math.abs(u) + Math.abs(v)) / 0.5;
+        else if (shape === 'line') rNorm = Math.abs(v) / 0.5;
+        else rNorm = Math.max(Math.abs(u), Math.abs(v)) / 0.5;
+        if (control >= rNorm) { o[idx] = r0; o[idx+1] = g0; o[idx+2] = b0; o[idx+3] = 255; } else o[idx+3] = 0;
+      }
+    }
+    updateMinWarn(atRiskArea, dottedArea, minFeatureOn);
+    oCtx.putImageData(out, 0, 0); composeView();
+  }
+
+  function render() {
+    if (!srcRGBA) return;
+    if (currentView === 'original') {
+      const id = oCtx.createImageData(srcW, srcH); id.data.set(srcRGBA); oCtx.putImageData(id, 0, 0); composeView(); return;
+    }
+    if (currentView === 'alpha') {
+      const id = oCtx.createImageData(srcW, srcH); const d = id.data; const s2 = srcRGBA;
+      for (let i = 0; i < srcW*srcH; i++) {
+        const a = s2[i*4+3], px = i % srcW, py = (i / srcW) | 0, si = i*4;
+        if (a === 0) { const ck = ((((px/10)|0) + ((py/10)|0)) % 2 === 0); d[si]=ck?255:180; d[si+1]=ck?60:40; d[si+2]=ck?210:150; d[si+3]=255; }
+        else if (a < 255) { d[si]=224; d[si+1]=255; d[si+2]=0; d[si+3]=255; }
+        else { d[si]=35; d[si+1]=35; d[si+2]=35; d[si+3]=255; }
+      }
+      oCtx.putImageData(id, 0, 0); composeView(); return;
+    }
+    if (!worker) initWorker();
+    if (worker && !workerBusy && postToWorker()) return;
+    if (worker && workerBusy) { scheduleRender(); return; }
+    renderFallback();
+  }
+  window.render = render;
+
+  function composeView() {
+    vCtx.clearRect(0, 0, srcW, srcH);
+    if (currentView === 'shirt') { vCtx.fillStyle = shirtColor; vCtx.fillRect(0, 0, srcW, srcH); }
+    vCtx.drawImage(outCanvas, 0, 0);
+    if (showMasks) for (const mk of masks) drawMaskOverlay(mk, false);
+    if (drawMode && curPts.length > 0) drawInProgress();
+    updateViewTransform();
+  }
+  function drawInProgress() {
+    const col = drawType === 'original' ? '#4a90ff' : '#54f595'; const lw = Math.max(1, 1.5 / zoom), vr = Math.max(2, 3.5 / zoom);
+    vCtx.beginPath(); vCtx.moveTo(curPts[0][0], curPts[0][1]);
+    for (let i = 1; i < curPts.length; i++) vCtx.lineTo(curPts[i][0], curPts[i][1]);
+    if (hoverPt) vCtx.lineTo(hoverPt[0], hoverPt[1]);
+    vCtx.strokeStyle = col; vCtx.lineWidth = lw; vCtx.stroke();
+    vCtx.fillStyle = col;
+    for (const p of curPts) { vCtx.beginPath(); vCtx.arc(p[0], p[1], vr, 0, Math.PI * 2); vCtx.fill(); }
+    vCtx.strokeStyle = '#fff'; vCtx.lineWidth = lw;
+    vCtx.beginPath(); vCtx.arc(curPts[0][0], curPts[0][1], vr * 1.6, 0, Math.PI * 2); vCtx.stroke();
+  }
+  function drawMaskOverlay(mk, live) {
+    if (mk.pts.length < 2) return; const col = mk.type === 'original' ? '#4a90ff' : '#54f595';
+    vCtx.beginPath(); vCtx.moveTo(mk.pts[0][0], mk.pts[0][1]);
+    for (let i = 1; i < mk.pts.length; i++) vCtx.lineTo(mk.pts[i][0], mk.pts[i][1]);
+    if (!live) { vCtx.closePath(); vCtx.fillStyle = col + '30'; vCtx.fill(); }
+    vCtx.lineWidth = Math.max(1, 1.5 / zoom); vCtx.strokeStyle = col; vCtx.stroke();
+  }
+
+  function zoomToFit() {
+    const r = canvasArea.getBoundingClientRect();
+    zoom = Math.min((r.width - 40) / srcW, (r.height - 40) / srcH, 1);
+    panX = (r.width - srcW * zoom) / 2; panY = (r.height - srcH * zoom) / 2; updateViewTransform();
+  }
+  function updateViewTransform() {
+    viewCanvas.style.transform = `translate(${panX}px,${panY}px) scale(${zoom})`;
+    $('zoomLevel').textContent = Math.round(zoom * 100) + '%';
+  }
+
+  canvasArea.addEventListener('mousemove', e => {
+    if (!srcRGBA || drawMode) { loupe.style.display = 'none'; return; }
+    const r = canvasArea.getBoundingClientRect();
+    const mx = e.clientX - r.left, my = e.clientY - r.top;
+    loupe.style.display = 'block';
+    loupe.style.left = (e.clientX + 20) + 'px'; loupe.style.top = (e.clientY - 180) + 'px';
+    const srcX = (mx - panX) / zoom, srcY = (my - panY) / zoom;
+    const mag = 6; const half = 80 / mag;
+    loupeCtx.clearRect(0, 0, 160, 160);
+    if (currentView === 'shirt') { loupeCtx.fillStyle = shirtColor; loupeCtx.fillRect(0, 0, 160, 160); }
+    loupeCtx.imageSmoothingEnabled = false;
+    loupeCtx.drawImage(outCanvas, srcX - half, srcY - half, half*2, half*2, 0, 0, 160, 160);
+  });
+  canvasArea.addEventListener('mouseleave', () => { loupe.style.display = 'none'; });
+
+  canvasArea.addEventListener('wheel', e => {
+    if (!srcRGBA) return; e.preventDefault();
+    const r = canvasArea.getBoundingClientRect();
+    const mx = e.clientX - r.left, my = e.clientY - r.top, oz = zoom;
+    zoom = Math.max(0.05, Math.min(20, zoom * (e.deltaY > 0 ? 0.9 : 1.1)));
+    panX = mx - (mx - panX) * (zoom / oz); panY = my - (my - panY) * (zoom / oz);
+    updateViewTransform();
+  }, { passive: false });
+  canvasArea.addEventListener('mousedown', e => {
+    if (!srcRGBA || e.button !== 0) return;
+    isDragging = true; dragStartX = e.clientX; dragStartY = e.clientY; panStartX = panX; panStartY = panY; movedDuringDraw = false;
+    if (!drawMode) canvasArea.classList.add('dragging');
+  });
+  window.addEventListener('mousemove', e => {
+    if (isDragging) {
+      const dx = e.clientX - dragStartX, dy = e.clientY - dragStartY;
+      if (Math.abs(dx) + Math.abs(dy) > 4) movedDuringDraw = true;
+      panX = panStartX + dx; panY = panStartY + dy; updateViewTransform(); return;
+    }
+    if (drawMode && curPts.length > 0) { hoverPt = screenToImage(e); composeView(); }
+  });
+  window.addEventListener('mouseup', e => {
+    if (isDragging) {
+      isDragging = false; canvasArea.classList.remove('dragging');
+      if (drawMode && !movedDuringDraw) { curPts.push(screenToImage(e)); hoverPt = null; composeView(); }
+    }
+  });
+  canvasArea.addEventListener('dblclick', () => { if (drawMode) finalizeMask(); });
+  $('closeMask').addEventListener('click', finalizeMask);
+  $('cancelMask').addEventListener('click', cancelDraw);
+  $('drawOriginal').addEventListener('click', () => { if (drawMode && drawType === 'original') cancelDraw(); else enterDraw('original'); });
+  $('drawProtect').addEventListener('click', () => { if (drawMode && drawType === 'protect') cancelDraw(); else enterDraw('protect'); });
+  $('zoomIn').addEventListener('click', () => { zoom = Math.min(20, zoom * 1.3); updateViewTransform(); });
+  $('zoomOut').addEventListener('click', () => { zoom = Math.max(0.05, zoom / 1.3); updateViewTransform(); });
+  $('zoomFit').addEventListener('click', zoomToFit);
+
+  function updateExportInfo() {
+    const cmW = parseFloat($('exportWidthCm').value) || 30;
+    const dpi = parseInt($('exportDpi').value) || 300;
+    $('exportInfo').textContent = `→ ${Math.round(cmW/2.54*dpi).toLocaleString()} ${t('pxWide')}`;
+  }
+  updateExportInfo();
+  $('exportWidthCm').addEventListener('input', () => { const v = parseFloat($('exportWidthCm').value); if (!isNaN(v) && v >= 1 && v <= 200) updateExportInfo(); });
+  $('exportDpi').addEventListener('input', () => { const v = parseInt($('exportDpi').value); if (!isNaN(v) && v >= 72 && v <= 1200) updateExportInfo(); });
+
+  function hardenCanvasAlpha(ctx, w, h, thr) {
+    const im = ctx.getImageData(0, 0, w, h); const d = im.data;
+    for (let i = 3; i < d.length; i += 4) d[i] = d[i] >= thr ? 255 : 0; ctx.putImageData(im, 0, 0);
+  }
+  $('exportPng').addEventListener('click', () => {
+    if (!srcRGBA) return;
+    const cmW = parseFloat($('exportWidthCm').value) || 30;
+    const dpi = parseInt($('exportDpi').value) || 300;
+    if (cmW < 1 || cmW > 200 || dpi < 72 || dpi > 1200) { alert('Bitte gültige Werte eingeben (1-200 cm, 72-1200 DPI).'); return; }
+    render();
+    const tW = Math.round(cmW / 2.54 * dpi), tH = Math.round(tW * (srcH / srcW));
+    if ($('minFeature').checked) { const im = oCtx.getImageData(0, 0, srcW, srcH); applyMinFeature(im.data, srcW, srcH); oCtx.putImageData(im, 0, 0); }
+    const ec = document.createElement('canvas'); ec.width = tW; ec.height = tH;
+    const ex = ec.getContext('2d');
+    if (tW !== srcW) { ex.imageSmoothingEnabled = true; ex.imageSmoothingQuality = 'high'; }
+    ex.drawImage(outCanvas, 0, 0, tW, tH);
+    hardenCanvasAlpha(ex, tW, tH, 128);
+    render();
+    const lpi = Math.round(getNum('freq'));
+    const name = `halftone_${lpi}lpi_${mode}_${tW}x${tH}.png`;
+    const l = document.createElement('a'); l.download = name; l.href = ec.toDataURL('image/png'); l.click();
+  });
+
+  updateShirtPreview();
+  applyLang('de');
+  pushHistory();
+})();
+</script>
+</body>
+</html>
